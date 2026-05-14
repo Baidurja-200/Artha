@@ -1,0 +1,33 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import Calculators from './pages/Calculators';
+import TaxCalculator from './pages/TaxCalculator';
+import Portfolio from './pages/Portfolio';
+import RiskProfiler from './pages/RiskProfiler';
+import MutualFunds from './pages/MutualFunds';
+import FundDetail from './pages/FundDetail';
+
+function App() {
+  return (
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/calculators" element={<Calculators />} />
+          <Route path="/tax" element={<TaxCalculator />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/risk" element={<RiskProfiler />} />
+          <Route path="/mutual-funds" element={<MutualFunds />} />
+          <Route path="/mutual-funds/:id" element={<FundDetail />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
+}
+
+export default App;

@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --score-offset: 440;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark-900 text-gray-100;
+  }
+
+  /* Custom Scrollbar for premium feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-800;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-600 rounded-full hover:bg-gold-600/50 transition-colors;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-dark-800/40 backdrop-blur-md border border-white/5 shadow-glass rounded-2xl;
+  }
+  
+  .glass-panel {
+    @apply bg-dark-900/60 backdrop-blur-lg border border-white/10 shadow-glass-lg rounded-3xl;
+  }
+
+  .btn-primary {
+    @apply relative overflow-hidden bg-gradient-gold text-dark-900 font-semibold px-6 py-3 rounded-xl shadow-gold hover:shadow-gold-lg transition-all duration-300 transform hover:-translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply relative overflow-hidden bg-dark-800/80 backdrop-blur-sm border border-white/10 text-white font-medium px-6 py-3 rounded-xl hover:bg-dark-700 hover:border-gold-500/30 transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full bg-dark-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500/50 focus:ring-1 focus:ring-gold-500/50 transition-all duration-300 placeholder-gray-500;
+  }
+
+  .label-text {
+    @apply block text-sm font-medium text-gray-400 mb-1.5;
+  }
+
+  .heading-1 {
+    @apply font-display text-5xl md:text-7xl font-bold tracking-tight text-white;
+  }
+
+  .heading-2 {
+    @apply font-display text-3xl md:text-4xl font-bold tracking-tight text-white;
+  }
+
+  .heading-3 {
+    @apply font-display text-xl md:text-2xl font-semibold text-white;
+  }
+
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent bg-gradient-gold;
+  }
+}
+
+/* Range Slider Customization */
+input[type=range] {
+  -webkit-appearance: none;
+  @apply w-full h-2 bg-dark-700 rounded-lg outline-none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  @apply w-5 h-5 rounded-full bg-gold-400 cursor-pointer shadow-gold hover:scale-110 transition-transform;
+}
+input[type=range]::-moz-range-thumb {
+  @apply w-5 h-5 border-none rounded-full bg-gold-400 cursor-pointer shadow-gold hover:scale-110 transition-transform;
+}
