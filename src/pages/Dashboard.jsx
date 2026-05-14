@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import useFinanceStore from '../store/useFinanceStore';
 import WellnessScore from '../components/dashboard/WellnessScore';
+import FinancialTimeline from '../components/dashboard/FinancialTimeline';
 import MarketOverview from '../components/dashboard/MarketOverview';
 import FinanceNews from '../components/dashboard/FinanceNews';
 import AIStockAdvisor from '../components/dashboard/AIStockAdvisor';
@@ -26,9 +27,10 @@ const Dashboard = () => {
         </Link>
       </div>
 
-      {/* Wellness Score Section */}
-      <section>
+      {/* Wellness Score & Timeline Section */}
+      <section className="space-y-6">
         <WellnessScore />
+        <FinancialTimeline />
       </section>
 
       {/* Financial Summary Cards */}
