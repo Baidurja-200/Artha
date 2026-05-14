@@ -8,6 +8,7 @@ const useFinanceStore = create(
     (set, get) => ({
       // State
       profile: {
+        age: 28, // Used for life-stage intelligence
         monthlyIncome: 150000,
         monthlyExpenses: 60000,
         debtEMI: 15000,

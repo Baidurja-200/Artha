@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import useFinanceStore from '../store/useFinanceStore';
 import WellnessScore from '../components/dashboard/WellnessScore';
 import FinancialTimeline from '../components/dashboard/FinancialTimeline';
+import PriorityStack from '../components/dashboard/PriorityStack';
+import DecisionSimulator from '../components/dashboard/DecisionSimulator';
 import MarketOverview from '../components/dashboard/MarketOverview';
 import FinanceNews from '../components/dashboard/FinanceNews';
 import AIStockAdvisor from '../components/dashboard/AIStockAdvisor';
@@ -31,6 +33,12 @@ const Dashboard = () => {
       <section className="space-y-6">
         <WellnessScore />
         <FinancialTimeline />
+      </section>
+
+      {/* Decision Engine Section */}
+      <section className="space-y-6 pt-6 border-t border-white/5">
+        <PriorityStack />
+        <DecisionSimulator />
       </section>
 
       {/* Financial Summary Cards */}
