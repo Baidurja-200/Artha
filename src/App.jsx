@@ -12,7 +12,7 @@ import FundDetail from './pages/FundDetail';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/Artha">
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
