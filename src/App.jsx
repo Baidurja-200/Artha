@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -10,10 +11,21 @@ import RiskProfiler from './pages/RiskProfiler';
 import MutualFunds from './pages/MutualFunds';
 import FundDetail from './pages/FundDetail';
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 2,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
 function App() {
   return (
-    <Router basename="/Artha">
-      <Layout>
+    <QueryClientProvider client={queryClient}>
+      <Router basename="/Artha">
+        <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -27,6 +39,7 @@ function App() {
         </Routes>
       </Layout>
     </Router>
+    </QueryClientProvider>
   );
 }
 

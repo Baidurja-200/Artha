@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { calculateSipProjection } from '../services/analyticsEngine';
 
 const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
@@ -9,11 +10,8 @@ const SIPCalculator = () => {
   const [years, setYears] = useState(10);
 
   // Calculation
+  const { totalInvested, wealthGained: totalReturns, futureValue } = calculateSipProjection(investment, years, rate);
   const monthlyRate = rate / 12 / 100;
-  const months = years * 12;
-  const futureValue = investment * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
-  const totalInvested = investment * months;
-  const totalReturns = futureValue - totalInvested;
 
   // Chart Data
   const data = [];

@@ -18,40 +18,21 @@ const TABS = [
 ];
 
 const MutualFunds = () => {
-  const { searchFunds, getTopFunds, loading } = useMutualFunds();
+  const { useSearchFunds, useTopFunds } = useMutualFunds();
   const [activeTab, setActiveTab] = useState('explorer');
   
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeRisk, setActiveRisk] = useState('All');
   
-  const [searchResults, setSearchResults] = useState([]);
-  const [topFunds, setTopFunds] = useState({ 
-    indexFunds: [], flexiCap: [], largeCap: [], midCap: [], smallCap: [], taxSaving: [], debtFunds: [] 
-  });
-  const [isSearching, setIsSearching] = useState(false);
-
   useEffect(() => {
-    const fetchTop = async () => {
-      const data = await getTopFunds();
-      if (data) setTopFunds(data);
-    };
-    fetchTop();
-  }, [getTopFunds]);
+    const timer = setTimeout(() => setDebouncedQuery(searchInput), 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (searchQuery.length > 2) {
-        setIsSearching(true);
-        const results = await searchFunds(searchQuery);
-        setSearchResults(results);
-      } else {
-        setIsSearching(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, searchFunds]);
+  const { data: topFunds = { indexFunds: [], flexiCap: [], largeCap: [], midCap: [], smallCap: [], taxSaving: [], debtFunds: [] }, isLoading: loading } = useTopFunds();
+  const { data: searchResults = [], isFetching: isSearching } = useSearchFunds(debouncedQuery);
 
   const filterResults = (funds) => {
     if (!funds) return [];
@@ -120,8 +101,8 @@ const MutualFunds = () => {
               type="text" 
               placeholder="Search funds by name (e.g. Parag Parikh, SBI Nifty)" 
               className="w-full bg-dark-800/80 backdrop-blur-sm border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold-500/50 shadow-glass transition-all"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
 
@@ -159,10 +140,10 @@ const MutualFunds = () => {
             </div>
           </div>
 
-          {isSearching ? (
+          {debouncedQuery.length >= 3 ? (
             <section>
               <h2 className="heading-3 mb-6">Search Results</h2>
-              {loading ? (
+              {isSearching ? (
                 <div className="text-center text-gold-400 py-10">Searching the database...</div>
               ) : filteredSearchResults.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

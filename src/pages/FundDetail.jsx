@@ -6,21 +6,16 @@ import { useMutualFunds } from '../hooks/useMutualFunds';
 
 const FundDetail = () => {
   const { id } = useParams();
-  const { getFundDetails, loading, error } = useMutualFunds();
-  const [fund, setFund] = useState(null);
+  const { useFundDetails } = useMutualFunds();
+  const { data: fund, isLoading: loading, error } = useFundDetails(id);
   const [chartData, setChartData] = useState([]);
   const [timeframe, setTimeframe] = useState('3Y');
 
   useEffect(() => {
-    const fetchDetail = async () => {
-      const data = await getFundDetails(id);
-      if (data) {
-        setFund(data);
-        processChartData(data.history, '3Y');
-      }
-    };
-    fetchDetail();
-  }, [id, getFundDetails]);
+    if (fund && fund.history) {
+      processChartData(fund.history, timeframe);
+    }
+  }, [fund, timeframe]);
 
   const processChartData = (history, range) => {
     if (!history) return;
@@ -60,7 +55,7 @@ const FundDetail = () => {
   }
 
   if (error) {
-    return <div className="container mx-auto px-6 py-20 text-center text-red-400">{error}</div>;
+    return <div className="container mx-auto px-6 py-20 text-center text-red-400">Failed to fetch fund details.</div>;
   }
 
   return (

@@ -1,50 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Newspaper, ExternalLink, Clock, RefreshCw } from 'lucide-react';
+import React from 'react';
+import { Newspaper, ExternalLink, Clock, RefreshCw, AlertTriangle } from 'lucide-react';
+import { useFinanceNews } from '../../services/marketApi';
 
 const FinanceNews = () => {
-  const [newsArticles, setNewsArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchNews = async () => {
-    setLoading(true);
-    try {
-      const RSS_URL = 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms';
-      const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${RSS_URL}`;
-      
-      const response = await fetch(API_URL);
-      const data = await response.json();
-      
-      if (data.status === 'ok') {
-        const formatted = data.items.slice(0, 8).map((item, idx) => {
-          // Calculate time ago
-          const diffHours = (new Date() - new Date(item.pubDate)) / (1000 * 60 * 60);
-          const timeText = diffHours < 1 ? 'Just now' : diffHours < 24 ? `${Math.floor(diffHours)} hours ago` : `${Math.floor(diffHours/24)} days ago`;
-
-          return {
-            id: idx,
-            source: 'Economic Times',
-            time: timeText,
-            title: item.title,
-            category: 'Market Update',
-            link: item.link,
-            image: item.enclosure?.link || 'https://images.unsplash.com/photo-1612013898864-f6b7d519b51e?w=500&q=80'
-          };
-        });
-        setNewsArticles(formatted);
-      }
-    } catch (error) {
-      console.error('Failed to fetch news', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNews();
-    // Refresh every 15 minutes
-    const interval = setInterval(fetchNews, 15 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: newsArticles = [], isLoading: loading, error, refetch, isFetching } = useFinanceNews();
 
   return (
     <div className="glass-card p-6 h-full flex flex-col">
@@ -53,8 +12,8 @@ const FinanceNews = () => {
           <Newspaper className="text-blue-400" /> Live Finance News
         </h3>
         <button 
-          onClick={fetchNews} 
-          className={`text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/5 ${loading ? 'animate-spin' : ''}`}
+          onClick={() => refetch()} 
+          className={`text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/5 ${isFetching ? 'animate-spin text-gold-400' : ''}`}
         >
           <RefreshCw size={16} />
         </button>
@@ -62,9 +21,14 @@ const FinanceNews = () => {
       
       <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
         {loading && newsArticles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gold-500 gap-3">
-            <RefreshCw className="animate-spin" />
+          <div className="flex flex-col items-center justify-center h-full text-gold-500 gap-3 py-10">
+            <RefreshCw className="animate-spin w-8 h-8" />
             <p className="text-sm font-medium">Fetching latest market updates...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-full text-red-400 gap-3 py-10">
+            <AlertTriangle className="w-8 h-8" />
+            <p className="text-sm font-medium">Could not load news feed.</p>
           </div>
         ) : (
           newsArticles.map((article) => (

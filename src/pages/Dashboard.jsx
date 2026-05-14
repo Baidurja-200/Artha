@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import useLocalStorage from '../hooks/useLocalStorage';
+import useFinanceStore from '../store/useFinanceStore';
 import WellnessScore from '../components/dashboard/WellnessScore';
 import MarketOverview from '../components/dashboard/MarketOverview';
 import FinanceNews from '../components/dashboard/FinanceNews';
@@ -8,31 +8,9 @@ import AIStockAdvisor from '../components/dashboard/AIStockAdvisor';
 import { Wallet, PiggyBank, Target, ArrowRight } from 'lucide-react';
 
 const Dashboard = () => {
-  const [profileData] = useLocalStorage('artha_user_profile', null);
+  const { profile, investments } = useFinanceStore();
+  const netWorth = (investments.equity + investments.debt + profile.emergencyFund) - profile.debtEMI;
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount || 0);
-  };
-
-  if (!profileData) {
-    return (
-      <div className="container mx-auto px-6 max-w-7xl py-20 text-center">
-        <h2 className="heading-2 mb-6">Welcome to Artha</h2>
-        <p className="text-gray-400 mb-8 max-w-2xl mx-auto text-lg">
-          To provide you with personalized insights, we need to understand your current financial standing.
-        </p>
-        <Link to="/profile" className="btn-primary inline-flex items-center gap-2">
-          Complete Profile Setup <ArrowRight size={18} />
-        </Link>
-      </div>
-    );
-  }
-
-  const netWorth = profileData.existingSavings + profileData.existingInvestments + profileData.emergencyFund - profileData.loans;
 
   return (
     <div className="container mx-auto px-6 max-w-7xl py-10 space-y-10">
@@ -40,7 +18,7 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="heading-2">Hello, {profileData.name.split(' ')[0] || 'Investor'}</h1>
+          <h1 className="heading-2">Hello, Investor</h1>
           <p className="text-gray-400">Here is your wealth overview for today.</p>
         </div>
         <Link to="/profile" className="text-gold-400 hover:text-gold-300 text-sm font-medium border border-gold-500/30 px-4 py-2 rounded-lg bg-gold-500/5 hover:bg-gold-500/10 transition-colors">
@@ -50,7 +28,7 @@ const Dashboard = () => {
 
       {/* Wellness Score Section */}
       <section>
-        <WellnessScore profileData={profileData} />
+        <WellnessScore />
       </section>
 
       {/* Financial Summary Cards */}
@@ -61,7 +39,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p className="text-sm text-gray-400 font-medium mb-1">Estimated Net Worth</p>
-            <h3 className="text-2xl font-bold text-white">{formatCurrency(netWorth)}</h3>
+            <h3 className="text-2xl font-bold text-white">₹ {netWorth.toLocaleString('en-IN')}</h3>
           </div>
         </div>
 
@@ -71,7 +49,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p className="text-sm text-gray-400 font-medium mb-1">Total Investments</p>
-            <h3 className="text-2xl font-bold text-white">{formatCurrency(profileData.existingInvestments + profileData.existingSavings)}</h3>
+            <h3 className="text-2xl font-bold text-white">₹ {(investments.equity + investments.debt).toLocaleString('en-IN')}</h3>
           </div>
         </div>
 
@@ -81,7 +59,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p className="text-sm text-gray-400 font-medium mb-1">Monthly SIPs</p>
-            <h3 className="text-2xl font-bold text-white">{formatCurrency(profileData.currentSIPs)}</h3>
+            <h3 className="text-2xl font-bold text-white">₹ {investments.totalSIP.toLocaleString('en-IN')}</h3>
           </div>
         </div>
       </section>

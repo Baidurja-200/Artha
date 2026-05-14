@@ -4,17 +4,21 @@ import { Scale, Plus, X, Search } from 'lucide-react';
 import { useMutualFunds } from '../../hooks/useMutualFunds';
 
 const FundCompare = () => {
-  const { searchFunds } = useMutualFunds();
+  const { useSearchFunds } = useMutualFunds();
   const [query, setQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedFunds, setSelectedFunds] = useState([]);
 
-  const handleSearch = async (e) => {
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 500);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const { data: results = [] } = useSearchFunds(debouncedQuery);
+  const searchResults = results.slice(0, 5);
+
+  const handleSearch = (e) => {
     e.preventDefault();
-    if (query.length > 2) {
-      const results = await searchFunds(query);
-      setSearchResults(results.slice(0, 5)); // show top 5 matches
-    }
   };
 
   const addFund = (fund) => {
@@ -31,7 +35,6 @@ const FundCompare = () => {
       };
       setSelectedFunds([...selectedFunds, fundWithMetrics]);
     }
-    setSearchResults([]);
     setQuery('');
   };
 

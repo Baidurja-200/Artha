@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Calculator } from 'lucide-react';
+import { Calculator, Lightbulb } from 'lucide-react';
+import { calculateSipProjection } from '../../services/analyticsEngine';
 
 const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
@@ -10,22 +11,7 @@ const SIPSimulator = () => {
   const [expectedReturn, setExpectedReturn] = useState(12);
   const [inflation, setInflation] = useState(6);
 
-  const calculateSIP = () => {
-    const months = years * 12;
-    const monthlyRate = expectedReturn / 12 / 100;
-    const invested = monthlySip * months;
-    
-    // Future Value of SIP formula: P * (((1 + r)^n - 1) / r) * (1 + r)
-    const futureValue = monthlySip * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
-    const estReturns = futureValue - invested;
-    
-    // Inflation adjusted (Present Value)
-    const inflationAdjusted = futureValue / Math.pow(1 + (inflation / 100), years);
-
-    return { invested, estReturns, futureValue, inflationAdjusted };
-  };
-
-  const { invested, estReturns, futureValue, inflationAdjusted } = calculateSIP();
+  const { totalInvested: invested, wealthGained: estReturns, futureValue, realValue: inflationAdjusted, insight } = calculateSipProjection(monthlySip, years, expectedReturn);
 
   // Generate Compound Curve Data
   const generateChartData = () => {
@@ -113,6 +99,11 @@ const SIPSimulator = () => {
               <p className="text-sm text-gray-400 uppercase tracking-wide">Total Estimated Corpus</p>
               <p className="text-4xl font-display font-bold text-gold-400 mt-2 shadow-gold-text">{formatCurrency(futureValue)}</p>
               <p className="text-xs text-gray-500 mt-2">Inflation Adjusted (Real Value): <span className="text-gray-300">{formatCurrency(inflationAdjusted)}</span></p>
+            </div>
+            
+            <div className="col-span-2 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex gap-3 items-start mt-2">
+              <Lightbulb className="text-blue-400 w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-gray-300 leading-relaxed">{insight}</p>
             </div>
           </div>
 
