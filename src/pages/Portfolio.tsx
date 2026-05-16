@@ -1,12 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Upload, Plus, Trash2, AlertTriangle, ShieldCheck, Lightbulb, ExternalLink } from 'lucide-react';
+import { Holding } from '../types/finance';
 
 const COLORS = ['#D4AF37', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
 
-const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+const formatCurrency = (val: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
-const initialPortfolio = [
+const initialPortfolio: Holding[] = [
   { id: 1, symbol: 'HDFCBANK', sector: 'Financials', quantity: 100, avgPrice: 1520 },
   { id: 2, symbol: 'RELIANCE', sector: 'Energy', quantity: 50, avgPrice: 2950 },
   { id: 3, symbol: 'INFY', sector: 'IT', quantity: 120, avgPrice: 1480 },

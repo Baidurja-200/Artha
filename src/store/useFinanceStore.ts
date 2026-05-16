@@ -2,8 +2,25 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { generateWellnessScores } from '../scoring/wellnessScoring';
 import { generateSmartInsights } from '../insights/insightGenerator';
+import { UserProfile, NetWorthEntry } from '../types/finance';
 
-const useFinanceStore = create(
+interface FinanceState {
+  profile: UserProfile & { debtEMI: number; tax80c: number; insuranceCoverage: number };
+  investments: {
+    totalSIP: number;
+    equity: number;
+    debt: number;
+  };
+  goals: Array<{ id: number; name: string; target: number; current: number; timelineYears: number }>;
+  trackingHistory: NetWorthEntry[];
+  updateProfile: (newProfile: Partial<FinanceState['profile']>) => void;
+  addGoal: (goal: any) => void;
+  getWellnessMetrics: () => any;
+  getSmartInsights: () => any;
+  recordMonthlySnapshot: () => void;
+}
+
+const useFinanceStore = create<FinanceState>()(
   persist(
     (set, get) => ({
       // State
