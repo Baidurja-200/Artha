@@ -14,7 +14,8 @@ const FinancialHealth = () => {
     updateInvestments, 
     addGoal, 
     deleteGoal,
-    getWellnessMetrics 
+    getWellnessMetrics,
+    getStabilityMetrics
   } = useFinanceStore();
 
   const metrics = getWellnessMetrics();
@@ -326,6 +327,70 @@ const FinancialHealth = () => {
                 </div>
               </div>
             </article>
+
+            {/* Stability & Stress Engine Gauges */}
+            {(() => {
+              const stability = getStabilityMetrics();
+              const stabilityCat = stability.stabilityScore >= 80 ? 'Bulletproof' : stability.stabilityScore >= 60 ? 'Stable' : stability.stabilityScore >= 40 ? 'Vulnerable' : 'Fragile';
+              const stabilityColor = stability.stabilityScore >= 80 ? 'text-green-400' : stability.stabilityScore >= 60 ? 'text-blue-400' : stability.stabilityScore >= 40 ? 'text-yellow-400' : 'text-red-400';
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <article className="glass-card p-5 border-white/5 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-semibold">Financial Stability Score</h3>
+                      <p className="text-2xl font-bold text-white">{stability.stabilityScore}/100</p>
+                      <p className="text-xs text-gray-400 mt-1">Status: <span className={`font-semibold ${stabilityColor}`}>{stabilityCat}</span></p>
+                    </div>
+                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-bold text-lg text-gold-400">
+                      {stability.stabilityScore}
+                    </div>
+                  </article>
+
+                  <article className="glass-card p-5 border-white/5 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-semibold">Active Stress Load</h3>
+                      <p className="text-2xl font-bold text-white">{stability.stressScore}/100</p>
+                      <p className="text-xs text-gray-400 mt-1">Strain Level: <span className={`font-semibold ${stability.stressScore >= 50 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>{stability.stressScore >= 50 ? 'Elevated' : 'Low / Relaxed'}</span></p>
+                    </div>
+                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-bold text-lg text-red-400">
+                      {stability.stressScore}
+                    </div>
+                  </article>
+
+                  {/* Stress Factors Warning Blocks */}
+                  {stability.stressFactors.length > 0 && (
+                    <div className="md:col-span-2 space-y-3">
+                      <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Stability Stress Indicators</h3>
+                      {stability.stressFactors.map((factor) => (
+                        <div 
+                          key={factor.id} 
+                          className={`p-4 rounded-xl border flex flex-col md:flex-row justify-between gap-4 text-sm ${
+                            factor.severity === 'critical' 
+                              ? 'bg-red-500/5 border-red-500/20 text-red-400' 
+                              : factor.severity === 'warning'
+                              ? 'bg-yellow-500/5 border-yellow-500/20 text-yellow-400'
+                              : 'bg-blue-500/5 border-blue-500/20 text-blue-400'
+                          }`}
+                        >
+                          <div className="space-y-1 md:max-w-[70%]">
+                            <span className="font-bold flex items-center gap-1.5">
+                              {factor.severity === 'critical' ? '🚨' : factor.severity === 'warning' ? '⚠️' : 'ℹ️'} {factor.title}
+                            </span>
+                            <p className="text-xs text-gray-300 leading-relaxed"><span className="font-semibold text-gray-400">Issue:</span> {factor.description}</p>
+                            <p className="text-xs text-gray-300 leading-relaxed"><span className="font-semibold text-gray-400">Risk impact:</span> {factor.impact}</p>
+                          </div>
+                          <div className="bg-dark-950/40 p-3 rounded-lg border border-white/5 text-xs text-white h-fit my-auto">
+                            <span className="font-semibold text-gold-400 block mb-0.5">Mitigation action:</span>
+                            {factor.mitigation}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Detailed Health Accordions */}
             <div className="space-y-4">

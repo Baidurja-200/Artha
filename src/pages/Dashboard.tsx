@@ -11,7 +11,7 @@ import SEO from '../components/common/SEO';
 import { Wallet, PiggyBank, Target, ArrowRight } from 'lucide-react';
 
 const Dashboard = () => {
-  const { profile, investments } = useFinanceStore();
+  const { profile, investments, getFinancialMomentum } = useFinanceStore();
   const netWorth = (investments.equity + investments.debt + profile.emergencyFund) - profile.debtEMI;
 
   // Machine-readable summary for future AI assistants
@@ -47,6 +47,51 @@ const Dashboard = () => {
           Edit Profile
         </Link>
       </header>
+
+      {/* Financial Momentum Streak Banner */}
+      {(() => {
+        const momentum = getFinancialMomentum();
+        const indicatorColors = {
+          accelerating: 'border-green-500/30 bg-green-500/5 text-green-400',
+          climbing: 'border-blue-500/30 bg-blue-500/5 text-blue-400',
+          flat: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-400',
+          descending: 'border-red-500/30 bg-red-500/5 text-red-400'
+        };
+        const indicatorBadges = {
+          accelerating: '🚀 Accelerating Momentum',
+          climbing: '📈 Climbing Steady',
+          flat: '⚖️ Flat Baseline',
+          descending: '⚠️ Descending Momentum'
+        };
+
+        return (
+          <article className={`p-5 rounded-2xl border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${indicatorColors[momentum.momentumIndicator]} animate-fade-in`}>
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold tracking-widest block opacity-75">
+                {indicatorBadges[momentum.momentumIndicator]}
+              </span>
+              <p className="text-sm text-gray-200 font-medium leading-relaxed">
+                {momentum.progressNarrative}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 bg-dark-950/40 px-4 py-2.5 rounded-xl border border-white/5 whitespace-nowrap">
+              <div>
+                <p className="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">Savings Streak</p>
+                <p className="text-sm font-bold text-white flex items-center gap-1">
+                  🔥 {momentum.savingsStreakMonths} Month{momentum.savingsStreakMonths > 1 ? 's' : ''}
+                </p>
+              </div>
+              <div className="h-6 w-px bg-white/10"></div>
+              <div>
+                <p className="text-[9px] text-gray-500 uppercase tracking-wider font-semibold">Wealth Gain</p>
+                <p className={`text-sm font-bold ${momentum.overallImprovementPoints >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {momentum.overallImprovementPoints >= 0 ? `+${momentum.overallImprovementPoints}` : momentum.overallImprovementPoints} Wellness Pts
+                </p>
+              </div>
+            </div>
+          </article>
+        );
+      })()}
 
       {/* Wellness Score & Timeline Section */}
       <section className="space-y-6" aria-label="Financial Wellness Diagnostics">

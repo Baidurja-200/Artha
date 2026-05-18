@@ -82,3 +82,14 @@ input[type=range]::-webkit-slider-thumb {
 input[type=range]::-moz-range-thumb {
   @apply w-5 h-5 border-none rounded-full bg-gold-400 cursor-pointer shadow-gold hover:scale-110 transition-transform;
 }
+
+/* Readability overrides for premium dark-themed contrast */
+.text-gray-500 {
+  color: #a3a3a3 !important;
+}
+.text-gray-400 {
+  color: #d4d4d8 !important;
+}
+.text-gray-300 {
+  color: #f4f4f5 !important;
+}

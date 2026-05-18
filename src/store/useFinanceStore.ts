@@ -4,6 +4,15 @@ import { generateWellnessScores } from '../scoring/wellnessScoring';
 import { generateSmartInsights } from '../insights/insightGenerator';
 import { UserProfile, NetWorthEntry, Expense, Budget, Goal } from '../types/finance';
 
+// New Modular Engines
+import { analyzeStabilityAndStress, StabilityMetrics } from '../financial-health/stabilityEngine';
+import { generateCashFlowForecast, CashFlowForecast } from '../forecast-engine/forecaster';
+import { analyzeFinancialBehavior, BehaviorAnalysis } from '../behavior-engine/behaviorAnalyzer';
+import { generatePersonalizedPriorities, DynamicPriority } from '../priority-engine/personalization';
+import { analyzeTransactions, TransactionObservation } from '../transaction-engine/analyzer';
+import { calculateFinancialMomentum, generateExplainableInsights, MomentumMetrics, ReusableInsight } from '../insights/explainableInsights';
+
+
 interface FinanceState {
   profile: UserProfile & { debtEMI: number; tax80c: number; insuranceCoverage: number };
   investments: {
@@ -27,6 +36,13 @@ interface FinanceState {
   updateBudget: (newBudget: Partial<Budget>) => void;
   getWellnessMetrics: () => any;
   getSmartInsights: () => any;
+  getStabilityMetrics: () => StabilityMetrics;
+  getCashFlowForecast: (projectionMonths?: number) => CashFlowForecast;
+  getBehaviorAnalysis: () => BehaviorAnalysis;
+  getPersonalizedPriorities: () => DynamicPriority[];
+  getTransactionObservations: () => TransactionObservation[];
+  getFinancialMomentum: () => MomentumMetrics;
+  getExplainableInsights: () => ReusableInsight[];
   recordMonthlySnapshot: () => void;
 }
 
@@ -147,6 +163,44 @@ const useFinanceStore = create<FinanceState>()(
         const metrics = get().getWellnessMetrics();
         const { profile, investments } = get();
         return generateSmartInsights(metrics, profile, investments);
+      },
+
+      getStabilityMetrics: () => {
+        const { profile, investments, expenses } = get();
+        return analyzeStabilityAndStress(profile, investments, expenses);
+      },
+
+      getCashFlowForecast: (projectionMonths = 6) => {
+        const { profile, investments, expenses } = get();
+        return generateCashFlowForecast(profile, investments, expenses, projectionMonths);
+      },
+
+      getBehaviorAnalysis: () => {
+        const { profile, investments, expenses, trackingHistory, budget } = get();
+        return analyzeFinancialBehavior(profile, investments, expenses, trackingHistory, budget);
+      },
+
+      getPersonalizedPriorities: () => {
+        const { profile, investments, goals, expenses, getStabilityMetrics, getBehaviorAnalysis, getCashFlowForecast } = get();
+        const stability = getStabilityMetrics();
+        const behavior = getBehaviorAnalysis();
+        const forecast = getCashFlowForecast();
+        return generatePersonalizedPriorities(profile, investments, goals, expenses, stability, behavior, forecast);
+      },
+
+      getTransactionObservations: () => {
+        const { expenses, profile } = get();
+        return analyzeTransactions(expenses, profile);
+      },
+
+      getFinancialMomentum: () => {
+        const { profile, investments, trackingHistory } = get();
+        return calculateFinancialMomentum(profile, investments, trackingHistory);
+      },
+
+      getExplainableInsights: () => {
+        const { profile, investments, goals, expenses } = get();
+        return generateExplainableInsights(profile, investments, goals, expenses);
       },
 
       recordMonthlySnapshot: () => {

@@ -3,8 +3,9 @@ import useFinanceStore from '../store/useFinanceStore';
 import SubNav from '../components/common/SubNav';
 import SEO from '../components/common/SEO';
 import { PieChart as ReChartsPie, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Plus, Trash2, Upload, AlertCircle, AlertTriangle, CheckCircle, Receipt, Search, Filter, Info, BookOpen } from 'lucide-react';
+import { Plus, Trash2, Upload, AlertCircle, AlertTriangle, CheckCircle, Receipt, Search, Filter, Info, BookOpen, Sparkles, ArrowRight } from 'lucide-react';
 import { Expense } from '../types/finance';
+import { parseBankStatementText } from '../transaction-engine/analyzer';
 
 const CATEGORIES = [
   'food', 'rent', 'travel', 'shopping', 'subscriptions', 
@@ -25,7 +26,11 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const ExpenseEngine = () => {
-  const { expenses, profile, addExpense, deleteExpense, uploadExpenses, clearExpenses } = useFinanceStore();
+  const { expenses, profile, addExpense, deleteExpense, uploadExpenses, clearExpenses, getTransactionObservations } = useFinanceStore();
+  
+  // Unstructured statement paste state
+  const [uploadTab, setUploadTab] = useState<'csv' | 'text'>('csv');
+  const [pastedText, setPastedText] = useState('');
   
   // Local form state
   const [amount, setAmount] = useState('');
@@ -192,6 +197,22 @@ const ExpenseEngine = () => {
 
     setAmount('');
     setDescription('');
+  };
+
+  // Handle pasted statement text parse
+  const handleParsePastedText = () => {
+    setCsvError('');
+    if (!pastedText.trim()) {
+      setCsvError('Please paste some bank statement text first.');
+      return;
+    }
+    const parsed = parseBankStatementText(pastedText);
+    if (parsed.length === 0) {
+      setCsvError('Could not parse any transactions. Ensure lines contain dates and rupee amounts.');
+    } else {
+      setCsvPreview(parsed);
+      setPastedText('');
+    }
   };
 
   // Overspending alerts logic
@@ -367,42 +388,86 @@ const ExpenseEngine = () => {
               </form>
             </section>
 
-            {/* CSV Sheets Upload */}
-            <section className="glass-card p-6 border-white/5 space-y-4" aria-label="Bulk Bank Statement Parser">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Upload className="text-gold-400" /> Bulk CSV Sheets Upload
-              </h2>
-              
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Upload bank CSV sheets. Artha parses entries and matches description tags (e.g. Swiggy, Uber) to standard categories.
-              </p>
-
-              <div 
-                className="border border-dashed border-white/10 hover:border-gold-500/30 rounded-xl p-4 text-center cursor-pointer transition-colors relative"
-                role="button"
-                aria-label="Upload CSV file button"
-              >
-                <input 
-                  id="csv-file-input"
-                  type="file" 
-                  accept=".csv"
-                  onChange={handleCsvChange}
-                  ref={fileInputRef}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  aria-label="Choose banking CSV sheet to parse"
-                />
-                <Upload className="w-8 h-8 mx-auto text-gray-500 mb-2" aria-hidden="true" />
-                <span className="text-xs text-gray-300 font-medium block">
-                  {csvFile ? csvFile.name : 'Choose CSV file'}
-                </span>
-                <span className="text-[10px] text-gray-500 block mt-1">
-                  Format: date, amount, category, description
-                </span>
+            {/* Bank Statement Parser & Importer */}
+            <section className="glass-card p-6 border-white/5 space-y-4 animate-fade-in" aria-label="Statement Importer">
+              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Upload className="text-gold-400 w-4 h-4" /> Bank Statement Parser
+                </h2>
+                <div className="flex gap-1.5 bg-dark-900 p-0.5 rounded-lg border border-white/5 text-[10px] font-semibold">
+                  <button 
+                    type="button"
+                    onClick={() => { setUploadTab('csv'); setCsvPreview([]); }}
+                    className={`px-2.5 py-1 rounded transition-colors ${uploadTab === 'csv' ? 'bg-gold-500/10 text-gold-400 font-bold' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    CSV File
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => { setUploadTab('text'); setCsvPreview([]); }}
+                    className={`px-2.5 py-1 rounded transition-colors ${uploadTab === 'text' ? 'bg-gold-500/10 text-gold-400 font-bold' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Text Paste
+                  </button>
+                </div>
               </div>
+
+              {uploadTab === 'csv' ? (
+                <div className="space-y-4">
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    Upload bank CSV sheets. Artha parses entries and matches description tags to standard categories.
+                  </p>
+
+                  <div 
+                    className="border border-dashed border-white/10 hover:border-gold-500/30 rounded-xl p-4 text-center cursor-pointer transition-colors relative"
+                    role="button"
+                    aria-label="Upload CSV file button"
+                  >
+                    <input 
+                      id="csv-file-input"
+                      type="file" 
+                      accept=".csv"
+                      onChange={handleCsvChange}
+                      ref={fileInputRef}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      aria-label="Choose banking CSV sheet to parse"
+                    />
+                    <Upload className="w-6 h-6 mx-auto text-gray-500 mb-1" aria-hidden="true" />
+                    <span className="text-[11px] text-gray-300 font-medium block">
+                      {csvFile ? csvFile.name : 'Choose CSV file'}
+                    </span>
+                    <span className="text-[9px] text-gray-500 block mt-0.5">
+                      Format: date, amount, category, description
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    Paste raw text or bank SMS alerts. Artha will dynamically isolate dates, categories, and rupee values!
+                  </p>
+                  
+                  <textarea 
+                    rows={4}
+                    placeholder="e.g. 18/05/2026 UPI/Zomato/92340283 ₹3,200&#10;17/05/2026 ATM WDL ₹5,000"
+                    value={pastedText}
+                    onChange={(e) => setPastedText(e.target.value)}
+                    className="input-field text-xs p-3 font-mono leading-relaxed h-28"
+                  />
+
+                  <button 
+                    type="button" 
+                    onClick={handleParsePastedText}
+                    className="btn-primary w-full text-[11px] py-2 flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkles size={13} /> Extract & Parse Statement
+                  </button>
+                </div>
+              )}
 
               {csvError && (
                 <div 
-                  className="p-3 bg-red-500/5 border border-red-500/20 text-red-400 rounded-xl text-xs flex items-start gap-2"
+                  className="p-3 bg-red-500/5 border border-red-500/20 text-red-400 rounded-xl text-[11px] flex items-start gap-2"
                   role="alert"
                 >
                   <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
@@ -537,6 +602,43 @@ const ExpenseEngine = () => {
                 ))}
               </div>
             )}
+
+            {/* Transaction Intelligence Diagnostics */}
+            {(() => {
+              const observations = getTransactionObservations();
+              if (observations.length === 0) return null;
+
+              return (
+                <section className="space-y-3" aria-label="Transaction Anomalies & Insights">
+                  <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Transaction Intelligence Diagnostics</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {observations.map((obs) => (
+                      <div 
+                        key={obs.id} 
+                        className={`p-4 rounded-xl border flex flex-col justify-between gap-3 text-sm hover:border-gold-500/20 transition-all ${
+                          obs.severity === 'critical' 
+                            ? 'bg-red-500/5 border-red-500/20 text-red-400' 
+                            : obs.severity === 'warning'
+                            ? 'bg-yellow-500/5 border-yellow-500/20 text-yellow-400'
+                            : 'bg-blue-500/5 border-blue-500/20 text-blue-400'
+                        }`}
+                      >
+                        <div className="space-y-1">
+                          <span className="font-bold flex items-center gap-1.5">
+                            {obs.severity === 'critical' ? '🚨' : obs.severity === 'warning' ? '⚠️' : 'ℹ️'} {obs.title}
+                          </span>
+                          <p className="text-xs text-gray-300 leading-relaxed">{obs.description}</p>
+                          <p className="text-[10px] text-gray-400 leading-relaxed italic"><span className="font-semibold not-italic">Impact:</span> {obs.impact}</p>
+                        </div>
+                        <div className="bg-dark-950/40 p-2.5 rounded-lg border border-white/5 text-[10px] text-gold-400 font-semibold uppercase tracking-wider flex items-center gap-1 mt-auto">
+                          <ArrowRight size={10} /> Rec: {obs.actionableStep}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
 
             {/* Search, filters, Ledger list table */}
             <article className="glass-card border-white/5 overflow-hidden">

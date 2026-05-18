@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { PiggyBank, ShieldCheck, Heart, Sparkles, TrendingUp, AlertTriangle, ArrowRight, IndianRupee, BookOpen, Info } from 'lucide-react';
 
 const CashFlowEngine = () => {
-  const { profile, investments } = useFinanceStore();
+  const { profile, investments, getCashFlowForecast } = useFinanceStore();
   
   // Local commitment calculator state
   const [newEMI, setNewEMI] = useState('');
@@ -282,6 +282,81 @@ const CashFlowEngine = () => {
           </section>
 
         </div>
+
+        {/* Predictive Cash Flow Projections */}
+        {(() => {
+          const forecast = getCashFlowForecast(6);
+
+          return (
+            <section className="pt-10 border-t border-white/5 space-y-6" aria-label="Predictive Cash Flow Projections">
+              <div>
+                <h2 className="heading-3 flex items-center gap-2">
+                  <TrendingUp className="text-gold-400" /> 6-Month Predictive Cash Flow Forecast
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Forward-looking projections using a {forecast.expenseTrendPct.toFixed(1)}% MoM expense trend.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Timeline Grid */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                    {forecast.forecastTimeline.map((item, index) => {
+                      const stressColor = item.stressFactor > 75 ? 'text-red-400' : item.stressFactor > 50 ? 'text-yellow-400' : 'text-green-400';
+                      
+                      return (
+                        <div key={index} className="bg-dark-900/50 border border-white/5 rounded-2xl p-4 flex flex-col justify-between group hover:border-gold-500/20 transition-colors">
+                          <span className="text-[10px] text-gray-500 font-bold uppercase">{item.monthName}</span>
+                          <div className="my-3">
+                            <p className="text-[9px] text-gray-500 font-medium">Expenses</p>
+                            <p className="text-xs font-semibold text-white">₹{item.projectedExpenses.toLocaleString('en-IN')}</p>
+                            <p className="text-[9px] text-gray-500 font-medium mt-1">Surplus</p>
+                            <p className={`text-xs font-semibold ${item.projectedSurplus >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              ₹{item.projectedSurplus.toLocaleString('en-IN')}
+                            </p>
+                          </div>
+                          <div>
+                            <div className="w-full bg-dark-800 h-1 rounded-full overflow-hidden mb-1">
+                              <div className={`h-full ${item.projectedSurplus >= 0 ? 'bg-green-400' : 'bg-red-400'}`} style={{ width: `${Math.max(0, 100 - item.stressFactor)}%` }}></div>
+                            </div>
+                            <span className="text-[8px] text-gray-400">Stress: <span className={`font-semibold ${stressColor}`}>{item.stressFactor}%</span></span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-xs text-gray-400 flex items-start gap-2 leading-relaxed">
+                    <Info size={14} className="text-gold-400 mt-0.5 flex-shrink-0" />
+                    <p>
+                      <strong>Forecasting Methodology:</strong> Projections calculate lifestyle inflation based on monthly discretionary fluctuations. It serves as an early-warning diagnostic mechanism to highlight weeks where active SIP debit allocations may suffer liquidity constraints.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Forecaster Insights Column */}
+                <div className="lg:col-span-5 space-y-4">
+                  {forecast.insights.map((insight, idx) => (
+                    <article key={idx} className="glass-card p-5 border-white/5 space-y-2 hover:border-gold-500/25 transition-colors">
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Sparkles size={14} className="text-gold-400" /> {insight.title}
+                      </h4>
+                      <p className="text-xs text-gray-300 leading-relaxed">{insight.description}</p>
+                      <p className="text-xs text-gray-300 leading-relaxed bg-dark-950/50 p-2.5 rounded-lg border border-white/5">
+                        <span className="font-semibold text-red-400 block mb-0.5">Impact:</span>
+                        {insight.impact}
+                      </p>
+                      <div className="text-[10px] text-gold-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                        <ArrowRight size={10} /> Action: {insight.advice}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        })()}
 
         {/* Financial Flexibility Section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6 border-t border-white/5">
