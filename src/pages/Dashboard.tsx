@@ -89,6 +89,84 @@ const Dashboard = () => {
         </div>
       </section>
 
+      {/* Financial Intelligence Suite */}
+      <section className="pt-6 border-t border-white/5">
+        <h2 className="heading-3 mb-6">Financial Intelligence Suite</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Link to="/financial-health" className="glass-card p-6 hover:bg-dark-800/80 hover:border-gold-500/30 transition-all group relative overflow-hidden flex flex-col justify-between h-40">
+            <div>
+              <h4 className="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Health Engine</h4>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Diagnostic score dials with real-time reactive parameter stress-testing.
+              </p>
+            </div>
+            <span className="text-[10px] text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              Analyze Health <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link to="/expense-engine" className="glass-card p-6 hover:bg-dark-800/80 hover:border-gold-500/30 transition-all group relative overflow-hidden flex flex-col justify-between h-40">
+            <div>
+              <h4 className="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Expense Engine</h4>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Manual ledger logger and automatic rule-based bank CSV sheet parser.
+              </p>
+            </div>
+            <span className="text-[10px] text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              Track Spending <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link to="/cashflow-engine" className="glass-card p-6 hover:bg-dark-800/80 hover:border-gold-500/30 transition-all group relative overflow-hidden flex flex-col justify-between h-40">
+            <div>
+              <h4 className="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Cash Flow Analyzer</h4>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Evaluate recurring living, debt, and SIP outflows vs active inflows.
+              </p>
+            </div>
+            <span className="text-[10px] text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              Verify Runway <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link to="/budgeting" className="glass-card p-6 hover:bg-dark-800/80 hover:border-gold-500/30 transition-all group relative overflow-hidden flex flex-col justify-between h-40">
+            <div>
+              <h4 className="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Budget Assistant</h4>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Interactive 50/30/20 rule allocation targets and automated progress trackers.
+              </p>
+            </div>
+            <span className="text-[10px] text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              Configure Budgets <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link to="/insights" className="glass-card p-6 hover:bg-dark-800/80 hover:border-gold-500/30 transition-all group relative overflow-hidden flex flex-col justify-between h-40">
+            <div>
+              <h4 className="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Decision Insights</h4>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Ranked priority stack, supportive stress gauges, and monthly briefings.
+              </p>
+            </div>
+            <span className="text-[10px] text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              Read Briefings <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link to="/tracking" className="glass-card p-6 hover:bg-dark-800/80 hover:border-gold-500/30 transition-all group relative overflow-hidden flex flex-col justify-between h-40">
+            <div>
+              <h4 className="text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Progress Tracking</h4>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Review historical monthly snapshots and metrics comparison tables.
+              </p>
+            </div>
+            <span className="text-[10px] text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              Check History <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* Quick Actions */}
       <section className="pt-6 border-t border-white/5">
         <h2 className="heading-3 mb-6">Quick Tools</h2>
@@ -113,3 +191,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

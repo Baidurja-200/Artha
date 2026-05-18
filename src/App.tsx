@@ -10,6 +10,12 @@ import Portfolio from './pages/Portfolio';
 import RiskProfiler from './pages/RiskProfiler';
 import MutualFunds from './pages/MutualFunds';
 import FundDetail from './pages/FundDetail';
+import FinancialHealth from './pages/FinancialHealth';
+import ExpenseEngine from './pages/ExpenseEngine';
+import CashFlowEngine from './pages/CashFlowEngine';
+import Budgeting from './pages/Budgeting';
+import Insights from './pages/Insights';
+import Tracking from './pages/Tracking';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,6 +42,12 @@ function App() {
           <Route path="/risk" element={<RiskProfiler />} />
           <Route path="/mutual-funds" element={<MutualFunds />} />
           <Route path="/mutual-funds/:id" element={<FundDetail />} />
+          <Route path="/financial-health" element={<FinancialHealth />} />
+          <Route path="/expense-engine" element={<ExpenseEngine />} />
+          <Route path="/cashflow-engine" element={<CashFlowEngine />} />
+          <Route path="/budgeting" element={<Budgeting />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/tracking" element={<Tracking />} />
         </Routes>
       </Layout>
     </Router>
@@ -44,3 +56,4 @@ function App() {
 }
 
 export default App;
+
