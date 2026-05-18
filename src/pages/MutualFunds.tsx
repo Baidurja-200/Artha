@@ -7,6 +7,7 @@ import GoalSuggestions from '../components/mutualfunds/GoalSuggestions';
 import ELSSModule from '../components/mutualfunds/ELSSModule';
 import FundCompare from '../components/mutualfunds/FundCompare';
 import OverlapAnalyzer from '../components/mutualfunds/OverlapAnalyzer';
+import SEO from '../components/common/SEO';
 
 const CATEGORIES = ['All', 'Index Funds', 'Flexi Cap', 'Large Cap', 'Mid Cap', 'Small Cap', 'ELSS', 'Debt Funds'];
 const RISKS = ['All', 'Low', 'Moderate', 'High', 'Very High'];
@@ -34,7 +35,7 @@ const MutualFunds = () => {
   const { data: topFunds = { indexFunds: [], flexiCap: [], largeCap: [], midCap: [], smallCap: [], taxSaving: [], debtFunds: [] }, isLoading: loading } = useTopFunds();
   const { data: searchResults = [], isFetching: isSearching } = useSearchFunds(debouncedQuery);
 
-  const filterResults = (funds) => {
+  const filterResults = (funds: any[]) => {
     if (!funds) return [];
     return funds.filter(fund => {
       const matchCategory = activeCategory === 'All' || fund.category === activeCategory;
@@ -45,14 +46,14 @@ const MutualFunds = () => {
 
   const filteredSearchResults = filterResults(searchResults);
 
-  const renderFundSection = (title, description, data) => {
+  const renderFundSection = (title: string, description: string, data: any[]) => {
     const filtered = filterResults(data);
     if (!filtered || filtered.length === 0) return null;
     return (
-      <section>
-        <div className="mb-6">
+      <section className="space-y-4">
+        <div>
           <h2 className="heading-3 mb-1">{title}</h2>
-          {description && <p className="text-sm text-gray-400">{description}</p>}
+          {description && <p className="text-sm text-gray-400 leading-relaxed">{description}</p>}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(fund => <FundCard key={fund.schemeCode} fund={fund} />)}
@@ -61,160 +62,206 @@ const MutualFunds = () => {
     );
   };
 
+  // Structured machine-readable details for AI
+  const aiMachineFundsProfile = {
+    activeModule: activeTab,
+    selectedCategoryFilter: activeCategory,
+    selectedRiskFilter: activeRisk,
+    hasActiveSearchQuery: debouncedQuery.length >= 3,
+    explorerCategoriesCount: CATEGORIES.length
+  };
+
   return (
-    <div className="container mx-auto px-6 max-w-7xl py-12 space-y-12">
+    <main 
+      className="container mx-auto px-6 max-w-7xl py-12 space-y-12 bg-dark-950 text-white"
+      role="main"
+      data-funds-explorer={JSON.stringify(aiMachineFundsProfile)}
+    >
+      <SEO 
+        title="Mutual Fund Explorer"
+        description="Research, compare, and simulate Indian mutual funds. Access index funds, flexi-caps, ELSS tax savings, and run portfolio overlap analysis."
+        keywords="mutual funds explorer India, direct mutual funds, index funds vs large cap, SIP simulators, ELSS tax saving calculator, portfolio overlap analyser"
+      />
       
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto space-y-4">
+      <header className="text-center max-w-3xl mx-auto space-y-4">
         <h1 className="heading-2">Mutual Fund Intelligence</h1>
         <p className="text-gray-400 text-lg">
           Research, compare, and simulate mutual funds to build a historically resilient, goal-oriented portfolio.
         </p>
-      </div>
+      </header>
 
-      {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto custom-scrollbar justify-start md:justify-center border-b border-white/10">
+      {/* Tabs Navigation (Accessible Tablist) */}
+      <nav 
+        role="tablist" 
+        aria-label="Mutual Fund intelligence modules"
+        className="flex overflow-x-auto custom-scrollbar justify-start md:justify-center border-b border-white/10"
+      >
         {TABS.map(tab => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`mf-panel-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-6 py-4 font-medium transition-all border-b-2 whitespace-nowrap ${
               activeTab === tab.id 
-                ? 'text-gold-400 border-gold-400 bg-gold-400/5' 
+                ? 'text-gold-400 border-gold-400 bg-gold-400/5 font-semibold' 
                 : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
             }`}
           >
             {tab.icon} {tab.label}
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* TABS CONTENT */}
-      
-      {/* 1. EXPLORER TAB */}
-      {activeTab === 'explorer' && (
-        <div className="space-y-12 animate-fade-in">
-          {/* Search Area */}
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-            <input 
-              type="text" 
-              placeholder="Search funds by name (e.g. Parag Parikh, SBI Nifty)" 
-              className="w-full bg-dark-800/80 backdrop-blur-sm border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold-500/50 shadow-glass transition-all"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </div>
-
-          <div className="glass-panel p-6">
-            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-              <div className="flex items-center gap-2 text-gray-400 font-medium whitespace-nowrap">
-                <Filter size={18} /> Filters:
-              </div>
-              
-              <div className="flex-1 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
-                <div className="flex gap-2">
-                  {CATEGORIES.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setActiveCategory(cat)}
-                      className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-                        activeCategory === cat ? 'bg-gold-500 text-dark-900 font-semibold' : 'bg-dark-700 text-gray-300 hover:bg-dark-600'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <select 
-                  className="bg-dark-700 text-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none border border-transparent focus:border-gold-500/30"
-                  value={activeRisk}
-                  onChange={(e) => setActiveRisk(e.target.value)}
-                >
-                  {RISKS.map(r => <option key={r} value={r}>{r === 'All' ? 'Any Risk' : `${r} Risk`}</option>)}
-                </select>
-              </div>
+      <div 
+        id={`mf-panel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`mf-tab-${activeTab}`}
+      >
+        
+        {/* 1. EXPLORER TAB */}
+        {activeTab === 'explorer' && (
+          <div className="space-y-12 animate-fade-in">
+            {/* Search Area */}
+            <div className="relative max-w-2xl mx-auto">
+              <label htmlFor="mf-search-input" className="sr-only">Search mutual funds by scheme name</label>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" aria-hidden="true" />
+              <input 
+                id="mf-search-input"
+                type="text" 
+                placeholder="Search funds by name (e.g. Parag Parikh, SBI Nifty)" 
+                className="w-full bg-dark-800/80 backdrop-blur-sm border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold-500/50 shadow-glass transition-all"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
             </div>
-          </div>
 
-          {debouncedQuery.length >= 3 ? (
-            <section>
-              <h2 className="heading-3 mb-6">Search Results</h2>
-              {isSearching ? (
-                <div className="text-center text-gold-400 py-10">Searching the database...</div>
-              ) : filteredSearchResults.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {filteredSearchResults.map(fund => <FundCard key={fund.schemeCode} fund={fund} />)}
+            {/* Filter Section */}
+            <aside className="glass-panel p-6" aria-label="Fund Filters">
+              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                <div className="flex items-center gap-2 text-gray-400 font-medium whitespace-nowrap">
+                  <Filter size={18} aria-hidden="true" /> Filters:
                 </div>
-              ) : (
-                <div className="text-center text-gray-500 py-10 glass-card">No funds found matching your criteria.</div>
-              )}
+                
+                <div className="flex-1 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
+                  <div className="flex gap-2" role="group" aria-label="Category filter options">
+                    {CATEGORIES.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+                          activeCategory === cat 
+                            ? 'bg-gold-500 text-dark-900 font-semibold shadow-sm' 
+                            : 'bg-dark-700 text-gray-300 hover:bg-dark-600'
+                        }`}
+                        aria-pressed={activeCategory === cat}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="mf-risk-select" className="sr-only">Filter by risk rating level</label>
+                  <select 
+                    id="mf-risk-select"
+                    className="bg-dark-700 text-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none border border-transparent focus:border-gold-500/30"
+                    value={activeRisk}
+                    onChange={(e) => setActiveRisk(e.target.value)}
+                  >
+                    {RISKS.map(r => <option key={r} value={r}>{r === 'All' ? 'Any Risk' : `${r} Risk`}</option>)}
+                  </select>
+                </div>
+              </div>
+            </aside>
+
+            {debouncedQuery.length >= 3 ? (
+              <section className="space-y-6">
+                <h2 className="heading-3">Search Results</h2>
+                {isSearching ? (
+                  <div className="text-center text-gold-400 py-10" role="status">Searching the database...</div>
+                ) : filteredSearchResults.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {filteredSearchResults.map(fund => <FundCard key={fund.schemeCode} fund={fund} />)}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-10 glass-card" role="status">No funds found matching your criteria.</div>
+                )}
+              </section>
+            ) : (
+              <div className="space-y-12">
+                {renderFundSection('Index Funds', 'Popular long-term category tracking broad market benchmarks passively.', topFunds.indexFunds)}
+                {renderFundSection('Flexi Cap', 'Dynamic allocation across large, mid, and small cap equities dynamically.', topFunds.flexiCap)}
+                {renderFundSection('Large Cap', 'Invests in top 100 blue-chip companies for stable capital growth.', topFunds.largeCap)}
+                {renderFundSection('Mid & Small Cap', 'High growth potential for aggressive long-term risk appetites.', [...(topFunds.midCap || []), ...(topFunds.smallCap || [])])}
+                {renderFundSection('Tax Saving (ELSS)', 'Performers that offer Section 80C tax benefits (3-year lock-in).', topFunds.taxSaving)}
+                {renderFundSection('Debt & Liquid', 'Low volatility for capital preservation and short-term liquidity.', topFunds.debtFunds)}
+              </div>
+            )}
+
+            {/* Static Educational Section inside Explorer */}
+            <section className="border-t border-white/5 pt-16" aria-label="Mutual Fund Classifications Guide">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-3 rounded-xl bg-blue-500/10" aria-hidden="true"><BookOpen className="text-blue-400 w-6 h-6" /></div>
+                <h2 className="heading-3">Topical Mutual Fund Insights</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <article className="glass-card p-6 border-l-4 border-l-blue-500 space-y-2">
+                  <h3 className="text-white font-semibold">1. Passive Index Investing</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    Index funds passively replicate broad market benchmarks (like NIFTY 50 or SENSEX) instead of paying active fund managers. Passivity lowers annual **Expense Ratios** to 0.1-0.3%, ensuring investors capture 99% of raw benchmark yields, beating most active managers over 10+ years.
+                  </p>
+                </article>
+                <article className="glass-card p-6 border-l-4 border-l-gold-500 space-y-2">
+                  <h3 className="text-white font-semibold">2. The Role of ELSS Schemes</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    Equity Linked Savings Schemes (ELSS) are unique tax-saver mutual funds. Under Section 80C, allocations up to ₹1.5 Lakhs are tax-exempt. Notably, ELSS features a **3-year lock-in period**, which is the shortest among all 80C options (compared to PPF's 15 years or Tax Saver FDs' 5 years).
+                  </p>
+                </article>
+                <article className="glass-card p-6 border-l-4 border-l-green-500 space-y-2">
+                  <h3 className="text-white font-semibold">3. Direct vs Regular cost impacts</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    Regular plans route through distributors, paying them **0.5% to 1.5% commission** annually out of your money, while **Direct plans** have zero commission. Over a 25-year compounding SIP horizon, that tiny 1% commission difference results in a **-20% drop in final total wealth**.
+                  </p>
+                </article>
+              </div>
             </section>
-          ) : (
-            <div className="space-y-12">
-              {renderFundSection('Index Funds', 'Popular long-term category tracking broad markets.', topFunds.indexFunds)}
-              {renderFundSection('Flexi Cap', 'Dynamic allocation across large, mid, and small caps.', topFunds.flexiCap)}
-              {renderFundSection('Large Cap', 'Invests in top 100 blue-chip companies for stable growth.', topFunds.largeCap)}
-              {renderFundSection('Mid & Small Cap', 'High growth potential for aggressive risk appetite.', [...(topFunds.midCap || []), ...(topFunds.smallCap || [])])}
-              {renderFundSection('Tax Saving (ELSS)', 'Performers that offer Section 80C tax benefits (3-year lock-in).', topFunds.taxSaving)}
-              {renderFundSection('Debt & Liquid', 'Low volatility for capital preservation.', topFunds.debtFunds)}
-            </div>
-          )}
+          </div>
+        )}
 
-          <section className="border-t border-white/5 pt-16">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-3 rounded-xl bg-blue-500/10"><BookOpen className="text-blue-400 w-6 h-6" /></div>
-              <h2 className="heading-3">Market Insights</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="glass-card p-6 border-l-4 border-l-blue-500">
-                <h4 className="text-white font-semibold mb-2">Why Index Funds?</h4>
-                <p className="text-sm text-gray-400 leading-relaxed">Index funds passively track market indices like NIFTY 50. They generally provide lower expense ratios and are suitable for moderate-risk investors seeking market-linked returns.</p>
-              </div>
-              <div className="glass-card p-6 border-l-4 border-l-gold-500">
-                <h4 className="text-white font-semibold mb-2">The Power of ELSS</h4>
-                <p className="text-sm text-gray-400 leading-relaxed">Equity Linked Savings Schemes combine tax saving (up to ₹1.5L under 80C) with equity exposure. They have the shortest lock-in period (3 years).</p>
-              </div>
-              <div className="glass-card p-6 border-l-4 border-l-green-500">
-                <h4 className="text-white font-semibold mb-2">Role of Debt Funds</h4>
-                <p className="text-sm text-gray-400 leading-relaxed">Debt funds invest in fixed-income securities. They are commonly used for lower volatility goals or short-term horizons where capital preservation is prioritized.</p>
-              </div>
-            </div>
+        {/* 2. SIP SIMULATOR TAB */}
+        {activeTab === 'sip' && (
+          <section className="animate-fade-in" aria-label="SIP Projections Tool">
+            <SIPSimulator />
           </section>
-        </div>
-      )}
+        )}
 
-      {/* 2. SIP SIMULATOR TAB */}
-      {activeTab === 'sip' && (
-        <div className="animate-fade-in">
-          <SIPSimulator />
-        </div>
-      )}
+        {/* 3. GOALS & TAX TAB */}
+        {activeTab === 'goals' && (
+          <section className="space-y-12 animate-fade-in" aria-label="Goals and Tax optimization">
+            <GoalSuggestions onExplore={(category) => {
+              setActiveCategory(category);
+              setActiveTab('explorer');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }} />
+            <ELSSModule />
+          </section>
+        )}
 
-      {/* 3. GOALS & TAX TAB */}
-      {activeTab === 'goals' && (
-        <div className="space-y-12 animate-fade-in">
-          <GoalSuggestions onExplore={(category) => {
-            setActiveCategory(category);
-            setActiveTab('explorer');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }} />
-          <ELSSModule />
-        </div>
-      )}
+        {/* 4. ANALYTICS TOOLS TAB */}
+        {activeTab === 'analytics' && (
+          <section className="space-y-12 animate-fade-in" aria-label="Advanced analytics tools">
+            <FundCompare />
+            <OverlapAnalyzer />
+          </section>
+        )}
 
-      {/* 4. ANALYTICS TOOLS TAB */}
-      {activeTab === 'analytics' && (
-        <div className="space-y-12 animate-fade-in">
-          <FundCompare />
-          <OverlapAnalyzer />
-        </div>
-      )}
-
-    </div>
+      </div>
+    </main>
   );
 };
 
