@@ -6,7 +6,6 @@ import FinancialTimeline from '../components/dashboard/FinancialTimeline';
 import PriorityStack from '../components/dashboard/PriorityStack';
 import DecisionSimulator from '../components/dashboard/DecisionSimulator';
 import MarketOverview from '../components/dashboard/MarketOverview';
-import FinanceNews from '../components/dashboard/FinanceNews';
 import AIStockAdvisor from '../components/dashboard/AIStockAdvisor';
 import SEO from '../components/common/SEO';
 import { Wallet, PiggyBank, Target, ArrowRight } from 'lucide-react';
@@ -99,14 +98,9 @@ const Dashboard = () => {
         <MarketOverview />
       </section>
 
-      {/* News & AI Advisor */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-white/5" aria-label="Curated Intelligence & Insights">
-        <div className="lg:col-span-2">
-          <FinanceNews />
-        </div>
-        <div>
-          <AIStockAdvisor />
-        </div>
+      {/* AI Advisor Callout */}
+      <section className="pt-6 border-t border-white/5" aria-label="AI Investing Guidance">
+        <AIStockAdvisor />
       </section>
 
       {/* Financial Intelligence Suite */}

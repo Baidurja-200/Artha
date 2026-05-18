@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, TrendingUp, PieChart, Calculator, BookOpen } from 'lucide-react';
 import SEO from '../components/common/SEO';
+import FinanceNews from '../components/dashboard/FinanceNews';
 
 const Home = () => {
   const features = [
@@ -136,6 +137,13 @@ const Home = () => {
               </p>
             </article>
           </div>
+        </div>
+      </section>
+
+      {/* Live Finance News Feed */}
+      <section className="py-16 bg-dark-900/30 border-b border-white/5 relative z-10" aria-label="Live Market News">
+        <div className="container mx-auto px-6 max-w-7xl">
+          <FinanceNews />
         </div>
       </section>
       
