@@ -37,14 +37,14 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/calculators" element={<Calculators />} />
-          <Route path="/tax" element={<TaxCalculator />} />
-          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/tax-planning" element={<TaxCalculator />} />
+          <Route path="/portfolio-analysis" element={<Portfolio />} />
           <Route path="/risk" element={<RiskProfiler />} />
           <Route path="/mutual-funds" element={<MutualFunds />} />
           <Route path="/mutual-funds/:id" element={<FundDetail />} />
           <Route path="/financial-health" element={<FinancialHealth />} />
-          <Route path="/expense-engine" element={<ExpenseEngine />} />
-          <Route path="/cashflow-engine" element={<CashFlowEngine />} />
+          <Route path="/expense-analysis" element={<ExpenseEngine />} />
+          <Route path="/cash-flow" element={<CashFlowEngine />} />
           <Route path="/budgeting" element={<Budgeting />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/tracking" element={<Tracking />} />

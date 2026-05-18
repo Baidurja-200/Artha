@@ -67,7 +67,7 @@ const ELSSModule = () => {
             </p>
           </div>
 
-          <Link to="/tax" className="btn-secondary w-full flex items-center justify-center gap-2 mt-4">
+          <Link to="/tax-planning" className="btn-secondary w-full flex items-center justify-center gap-2 mt-4">
             Go to Advanced Tax Calculator <ArrowRight size={16} />
           </Link>
         </div>

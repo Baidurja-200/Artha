@@ -13,8 +13,8 @@ const SubNav = () => {
 
   const links: SubNavLink[] = [
     { name: 'Health Engine', path: '/financial-health', icon: <HeartPulse size={16} /> },
-    { name: 'Expense Engine', path: '/expense-engine', icon: <Receipt size={16} /> },
-    { name: 'Cash Flow', path: '/cashflow-engine', icon: <PiggyBank size={16} /> },
+    { name: 'Expense Engine', path: '/expense-analysis', icon: <Receipt size={16} /> },
+    { name: 'Cash Flow', path: '/cash-flow', icon: <PiggyBank size={16} /> },
     { name: 'Budget Assistant', path: '/budgeting', icon: <Target size={16} /> },
     { name: 'Decision Insights', path: '/insights', icon: <Lightbulb size={16} /> },
     { name: 'Progress Tracking', path: '/tracking', icon: <History size={16} /> },

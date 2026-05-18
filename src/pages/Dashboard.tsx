@@ -130,7 +130,7 @@ const Dashboard = () => {
           </Link>
 
           <Link 
-            to="/expense-engine" 
+            to="/expense-analysis" 
             className="glass-card p-6 hover:bg-dark-800/80 hover:border-gold-500/30 transition-all group relative overflow-hidden flex flex-col justify-between h-40"
             aria-label="Open Expense Engine to upload statements or log items"
           >
@@ -146,7 +146,7 @@ const Dashboard = () => {
           </Link>
 
           <Link 
-            to="/cashflow-engine" 
+            to="/cash-flow" 
             className="glass-card p-6 hover:bg-dark-800/80 hover:border-gold-500/30 transition-all group relative overflow-hidden flex flex-col justify-between h-40"
             aria-label="Open Cash Flow Analyzer to check runway breathing room"
           >
@@ -218,10 +218,10 @@ const Dashboard = () => {
           <Link to="/calculators" className="glass-card p-4 hover:bg-dark-800/80 transition-colors text-center group">
             <span className="block text-gray-300 font-medium group-hover:text-gold-400 transition-colors">SIP Calculator</span>
           </Link>
-          <Link to="/tax" className="glass-card p-4 hover:bg-dark-800/80 transition-colors text-center group">
+          <Link to="/tax-planning" className="glass-card p-4 hover:bg-dark-800/80 transition-colors text-center group">
             <span className="block text-gray-300 font-medium group-hover:text-gold-400 transition-colors">Tax Planner</span>
           </Link>
-          <Link to="/portfolio" className="glass-card p-4 hover:bg-dark-800/80 transition-colors text-center group">
+          <Link to="/portfolio-analysis" className="glass-card p-4 hover:bg-dark-800/80 transition-colors text-center group">
             <span className="block text-gray-300 font-medium group-hover:text-gold-400 transition-colors">Portfolio Analysis</span>
           </Link>
           <Link to="/risk" className="glass-card p-4 hover:bg-dark-800/80 transition-colors text-center group">

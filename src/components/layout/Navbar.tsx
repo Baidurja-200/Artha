@@ -18,8 +18,8 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <Activity size={18} /> },
     { name: 'Calculators', path: '/calculators', icon: <Calculator size={18} /> },
-    { name: 'Tax', path: '/tax', icon: <LineChart size={18} /> },
-    { name: 'Portfolio', path: '/portfolio', icon: <TrendingUp size={18} /> },
+    { name: 'Tax', path: '/tax-planning', icon: <LineChart size={18} /> },
+    { name: 'Portfolio', path: '/portfolio-analysis', icon: <TrendingUp size={18} /> },
     { name: 'Mutual Funds', path: '/mutual-funds', icon: <PieChart size={18} /> },
     { name: 'Risk Profile', path: '/risk', icon: <ShieldAlert size={18} /> }
   ];
