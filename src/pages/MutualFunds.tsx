@@ -7,6 +7,7 @@ import GoalSuggestions from '../components/mutualfunds/GoalSuggestions';
 import ELSSModule from '../components/mutualfunds/ELSSModule';
 import FundCompare from '../components/mutualfunds/FundCompare';
 import OverlapAnalyzer from '../components/mutualfunds/OverlapAnalyzer';
+import PortfolioPlanner from '../components/mutualfunds/PortfolioPlanner';
 import SEO from '../components/common/SEO';
 
 const CATEGORIES = ['All', 'Index Funds', 'Flexi Cap', 'Large Cap', 'Mid Cap', 'Small Cap', 'ELSS', 'Debt Funds'];
@@ -194,12 +195,12 @@ const MutualFunds = () => {
               </section>
             ) : (
               <div className="space-y-12">
-                {renderFundSection('Index Funds', 'Popular long-term category tracking broad market benchmarks passively.', topFunds.indexFunds)}
-                {renderFundSection('Flexi Cap', 'Dynamic allocation across large, mid, and small cap equities dynamically.', topFunds.flexiCap)}
-                {renderFundSection('Large Cap', 'Invests in top 100 blue-chip companies for stable capital growth.', topFunds.largeCap)}
-                {renderFundSection('Mid & Small Cap', 'High growth potential for aggressive long-term risk appetites.', [...(topFunds.midCap || []), ...(topFunds.smallCap || [])])}
-                {renderFundSection('Tax Saving (ELSS)', 'Performers that offer Section 80C tax benefits (3-year lock-in).', topFunds.taxSaving)}
-                {renderFundSection('Debt & Liquid', 'Low volatility for capital preservation and short-term liquidity.', topFunds.debtFunds)}
+                {renderFundSection('Index Funds', 'Passive trackers copying major market indexes for low expense fees.', topFunds.indexFunds)}
+                {renderFundSection('Flexi Cap', 'Adaptive, manager-led multi-cap funds dynamically investing in top Indian sectors.', topFunds.flexiCap)}
+                {renderFundSection('Large Cap', 'Invests in massive blue-chip leaders to ensure moderate volatility compounding.', topFunds.largeCap)}
+                {renderFundSection('Mid & Small Cap', 'Focused high-growth sector allocations suited for aggressive timelines.', [...(topFunds.midCap || []), ...(topFunds.smallCap || [])])}
+                {renderFundSection('Tax Saving (ELSS)', 'Provides statutory Section 80C exemptions with only a 3-year lock-in.', topFunds.taxSaving)}
+                {renderFundSection('Debt & Liquid', 'Low asset risk instruments built for emergency reserve and dry powder caches.', topFunds.debtFunds)}
               </div>
             )}
 
@@ -255,6 +256,7 @@ const MutualFunds = () => {
         {/* 4. ANALYTICS TOOLS TAB */}
         {activeTab === 'analytics' && (
           <section className="space-y-12 animate-fade-in" aria-label="Advanced analytics tools">
+            <PortfolioPlanner />
             <FundCompare />
             <OverlapAnalyzer />
           </section>

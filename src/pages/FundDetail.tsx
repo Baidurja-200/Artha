@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { ArrowLeft, TrendingUp, AlertTriangle, User, Briefcase, Plus, BookOpen, Info } from 'lucide-react';
+import { ArrowLeft, TrendingUp, AlertTriangle, User, Briefcase, Plus, BookOpen, Info, Target, Shield, HelpCircle, Heart } from 'lucide-react';
 import { useMutualFunds } from '../hooks/useMutualFunds';
+import { getFundInsights } from '../fund-engine/fundInsights';
 import SEO from '../components/common/SEO';
 
 const FundDetail = () => {
@@ -59,6 +60,8 @@ const FundDetail = () => {
     return <div className="container mx-auto px-6 py-20 text-center text-red-400 font-semibold" role="alert">Failed to fetch fund details.</div>;
   }
 
+  const insights = getFundInsights(fund.schemeCode, fund.schemeName);
+
   // Machine-readable data for future AI assistants
   const aiMachineFundDetailProfile = {
     schemeCode: fund.schemeCode,
@@ -70,7 +73,12 @@ const FundDetail = () => {
     expenseRatioPercent: fund.expenseRatio,
     aum: fund.aum,
     manager: fund.manager,
-    minimumSip: fund.minSip
+    minimumSip: fund.minSip,
+    whyThisFund: insights.whyThisFund,
+    bestFor: insights.bestFor,
+    idealHorizon: insights.idealHorizon,
+    volatility: insights.expectedVolatility,
+    consistency: insights.consistencyRating
   };
 
   // Structured plain-text description of the NAV performance
@@ -81,7 +89,7 @@ const FundDetail = () => {
 
   return (
     <main 
-      className="container mx-auto px-6 max-w-5xl py-8 space-y-8 bg-dark-950 text-white"
+      className="container mx-auto px-6 max-w-5xl py-8 space-y-8 bg-dark-950 text-white animate-fade-in"
       role="main"
       data-fund-profile={JSON.stringify(aiMachineFundDetailProfile)}
     >
@@ -103,8 +111,9 @@ const FundDetail = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="flex gap-2 mb-2" role="status">
-              <span className="text-xs font-medium px-2 py-1 rounded bg-dark-700 text-gray-300">{fund.category}</span>
-              <span className="text-xs font-medium px-2 py-1 rounded bg-orange-400/10 text-orange-400 border border-orange-400/20">{fund.risk} Risk</span>
+              <span className="text-xs font-medium px-2.5 py-1 rounded bg-dark-700 text-gray-300">{fund.category}</span>
+              <span className="text-xs font-medium px-2.5 py-1 rounded bg-orange-400/10 text-orange-400 border border-orange-400/20">{fund.risk} Risk</span>
+              <span className="text-xs font-medium px-2.5 py-1 rounded bg-gold-400/10 text-gold-400 border border-gold-400/20">{insights.consistencyRating}</span>
             </div>
             <h1 className="heading-2">{fund.schemeName}</h1>
             <p className="text-gray-400 mt-2 text-sm">Fund House: {fund.fund_house}</p>
@@ -194,12 +203,70 @@ const FundDetail = () => {
         </div>
       </section>
 
+      {/* Advisor Explainable Decision Intelligence Layer */}
+      <section className="glass-card p-6 md:p-8 space-y-6" aria-label="Advisor Suitability & Explainability">
+        <h2 className="text-lg font-semibold text-white border-b border-white/5 pb-4 flex items-center gap-2">
+          🎯 Mutual Fund Suitability & Curation Analysis
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <article className="space-y-4">
+            <div>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wide">Why This Fund?</h3>
+              <p className="text-sm text-gray-200 mt-1 leading-relaxed">{insights.whyThisFund}</p>
+            </div>
+            
+            <div>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wide">Who It is Best For</h3>
+              <p className="text-sm text-gray-200 mt-1 leading-relaxed">{insights.bestFor}</p>
+            </div>
+            
+            <div>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wide">Goal Mapping</h3>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {insights.goalMapping.map((goal) => (
+                  <span key={goal} className="text-xs font-semibold px-2.5 py-1 rounded-md bg-gold-400/10 text-gold-400 capitalize">
+                    {goal}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </article>
+
+          <article className="space-y-4 border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6">
+            <div>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wide">Expected Volatility Profile</h3>
+              <p className="text-sm text-gray-200 mt-1 leading-relaxed">
+                <strong>{insights.expectedVolatility} Volatility:</strong> {insights.volatilityExplanation}
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wide">Risk Interpretation</h3>
+              <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl text-xs text-red-400 flex gap-2 items-start mt-1 leading-relaxed">
+                <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
+                <span>
+                  <strong>Risk Level - {fund.risk}:</strong> {insights.riskExplanation}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wide">Ideal Holding Horizon</h3>
+              <p className="text-sm text-gray-200 mt-1 leading-relaxed">
+                A minimum holding time of <strong className="text-gold-400">{insights.idealHorizon}</strong> is strongly recommended to ride out market volatility cycles.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
       {/* Deep Dive Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {/* Info Box */}
         <section className="glass-card p-6 md:p-8 space-y-6" aria-label="Objective and Manager Overview">
-          <h2 className="text-lg font-semibold text-white border-b border-white/5 pb-4">Fund Overview</h2>
+          <h2 className="text-lg font-semibold text-white border-b border-white/5 pb-4">Fund Administration</h2>
           
           <div className="space-y-4">
             <article className="flex items-start gap-4" aria-label="Investment target explanation">
@@ -207,9 +274,9 @@ const FundDetail = () => {
                 <Briefcase className="text-blue-400 w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-white mb-1">Investment Objective</h3>
+                <h3 className="text-sm font-medium text-white mb-1">Deduction & Tax Profile</h3>
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  Suitable for moderate-risk investors. Historically strong performer in the {fund.category} category. Aims to provide long-term capital appreciation by investing predominantly in equity and equity related instruments.
+                  {insights.suitabilityInsights} Evaluated dynamically. Captures core indices and leverages strict compounding strategies.
                 </p>
               </div>
             </article>
@@ -229,9 +296,9 @@ const FundDetail = () => {
                 <AlertTriangle className="text-red-400 w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-white mb-1">Risk Profile</h3>
+                <h3 className="text-sm font-medium text-white mb-1">Disclaimer Notice</h3>
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  Rated as <strong>{fund.risk}</strong> risk. Subject to market risks. Please read all scheme related documents carefully before investing. Past performance is not indicative of future returns.
+                  All mutual funds are subject to market risks. Please read all scheme-related documents carefully before investing. Past performance is not indicative of future compounding speed.
                 </p>
               </div>
             </article>
