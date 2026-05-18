@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { CheckCircle2, AlertCircle, BookOpen, Info } from 'lucide-react';
+import { CheckCircle2, AlertCircle, BookOpen, Info, ArrowRight } from 'lucide-react';
 import SEO from '../components/common/SEO';
 
-const formatCurrency = (val: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+import { calculateTaxBreakdown } from '../tax-engine/taxCalculatorCore';
+import { generateTaxInsights } from '../tax-engine/taxInsights';
+
+const formatCurrency = (val: number) => 
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
 const TaxCalculator = () => {
   const [income, setIncome] = useState(1500000);
@@ -13,65 +17,36 @@ const TaxCalculator = () => {
   const [homeLoanInt, setHomeLoanInt] = useState(200000);
   const [otherDeductions, setOtherDeductions] = useState(50000);
 
-  // Standard deduction
-  const standardDeduction = 50000;
-
-  // Calculate Old Regime Tax
-  const calculateOldTax = () => {
-    let taxable = income - standardDeduction - hra - Math.min(deduction80c, 150000) - deduction80d - Math.min(homeLoanInt, 200000) - otherDeductions;
-    if (taxable <= 250000) return 0;
-    if (taxable <= 500000) return 0; // Rebate u/s 87A
-
-    let tax = 0;
-    if (taxable > 1000000) {
-      tax += (taxable - 1000000) * 0.3;
-      tax += 500000 * 0.2;
-      tax += 250000 * 0.05;
-    } else if (taxable > 500000) {
-      tax += (taxable - 500000) * 0.2;
-      tax += 250000 * 0.05;
-    } else {
-      tax += (taxable - 250000) * 0.05;
-    }
-    return tax * 1.04; // 4% cess
+  const inputs = {
+    grossIncome: income,
+    hra,
+    deduction80c,
+    deduction80d,
+    homeLoanInterest: homeLoanInt,
+    otherDeductions
   };
 
-  // Calculate New Regime Tax (FY 2023-24 onwards)
-  const calculateNewTax = () => {
-    let taxable = income - standardDeduction; // New regime allows standard deduction now
-    if (taxable <= 700000) return 0; // Rebate u/s 87A
+  const oldBreakdown = calculateTaxBreakdown(inputs, false);
+  const newBreakdown = calculateTaxBreakdown(inputs, true);
 
-    let tax = 0;
-    if (taxable > 1500000) {
-      tax += (taxable - 1500000) * 0.3;
-      taxable = 1500000;
-    }
-    if (taxable > 1200000) {
-      tax += (taxable - 1200000) * 0.2;
-      taxable = 1200000;
-    }
-    if (taxable > 900000) {
-      tax += (taxable - 900000) * 0.15;
-      taxable = 900000;
-    }
-    if (taxable > 600000) {
-      tax += (taxable - 600000) * 0.1;
-      taxable = 600000;
-    }
-    if (taxable > 300000) {
-      tax += (taxable - 300000) * 0.05;
-    }
-    return tax * 1.04; // 4% cess
-  };
+  const rec = generateTaxInsights(
+    oldBreakdown,
+    newBreakdown,
+    hra,
+    deduction80c,
+    deduction80d,
+    homeLoanInt,
+    otherDeductions
+  );
 
-  const oldTax = calculateOldTax();
-  const newTax = calculateNewTax();
-  const savings = Math.abs(oldTax - newTax);
-  const recommendedRegime = oldTax < newTax ? 'Old Regime' : 'New Regime';
+  const oldTax = oldBreakdown.finalTax;
+  const newTax = newBreakdown.finalTax;
+  const savings = rec.savingsAmount;
+  const recommendedRegime = rec.recommendedRegime;
 
   const chartData = [
     {
-      name: 'Tax regimes comparison',
+      name: 'Tax comparison',
       'Old Regime': oldTax,
       'New Regime': newTax,
     }
@@ -98,19 +73,22 @@ const TaxCalculator = () => {
 
   return (
     <main 
-      className="container mx-auto px-6 max-w-5xl py-12 space-y-10"
+      className="container mx-auto px-6 max-w-5xl py-12 space-y-10 animate-fade-in"
       role="main"
       data-tax-profile={JSON.stringify(aiMachineTaxProfile)}
     >
       <SEO 
         title="Tax Planner"
-        description="Calculate and compare Indian Income Tax under Old vs New Tax Regimes. Optimize HRA, Section 80C, 80D, and Home Loan interest deductions."
-        keywords="income tax calculator India, FY 2023-24 tax old vs new, HRA tax saving exemption, 80c deduction, home loan interest rebate"
+        description="Calculate and compare Indian Income Tax under Old vs New Tax Regimes for FY 2025-26. Optimize HRA, Section 80C, 80D, and Home Loan interest deductions."
+        keywords="income tax calculator India, FY 2025-26 tax old vs new, AY 2026-27, HRA tax saving exemption, 80c deduction, home loan interest rebate"
       />
 
       <header className="text-center">
-        <h1 className="heading-2 mb-4">Indian Income Tax Planner</h1>
-        <p className="text-gray-400">Compare Old vs New tax regimes and optimize your exemptions in real-time.</p>
+        <span className="text-[10px] bg-gold-500/10 text-gold-400 font-bold border border-gold-500/30 px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block">
+          FY 2025-26 (AY 2026-27)
+        </span>
+        <h1 className="heading-2 mb-2">Indian Income Tax Decision Intelligence</h1>
+        <p className="text-gray-400">Compare tax regimes under the latest Budget rules and discover dynamic optimization suggestions.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -135,7 +113,16 @@ const TaxCalculator = () => {
             <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Exemptions & Deductions (Old Regime)</h3>
             
             <div>
-              <label htmlFor="tax-hra-slider" className="label-text flex justify-between">HRA Exemption <span>{formatCurrency(hra)}</span></label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="tax-hra-slider" className="label-text mb-0">HRA Exemption</label>
+                <input 
+                  type="number" 
+                  value={hra} 
+                  onChange={(e) => setHra(Math.min(500000, Math.max(0, Number(e.target.value))))} 
+                  className="bg-dark-900/60 border border-white/10 rounded px-2 py-0.5 text-xs text-gold-400 font-bold w-24 text-right focus:outline-none focus:border-gold-500"
+                  aria-label="HRA Exemption value"
+                />
+              </div>
               <input 
                 id="tax-hra-slider"
                 type="range" 
@@ -150,7 +137,16 @@ const TaxCalculator = () => {
             </div>
             
             <div>
-              <label htmlFor="tax-80c-slider" className="label-text flex justify-between">80C (LIC, EPF, PPF, ELSS) <span>{formatCurrency(deduction80c)}</span></label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="tax-80c-slider" className="label-text mb-0">80C (LIC, EPF, PPF, ELSS)</label>
+                <input 
+                  type="number" 
+                  value={deduction80c} 
+                  onChange={(e) => setDeduction80c(Math.min(150000, Math.max(0, Number(e.target.value))))} 
+                  className="bg-dark-900/60 border border-white/10 rounded px-2 py-0.5 text-xs text-gold-400 font-bold w-24 text-right focus:outline-none focus:border-gold-500"
+                  aria-label="Section 80C tax investments value"
+                />
+              </div>
               <input 
                 id="tax-80c-slider"
                 type="range" 
@@ -165,7 +161,16 @@ const TaxCalculator = () => {
             </div>
             
             <div>
-              <label htmlFor="tax-80d-slider" className="label-text flex justify-between">80D (Health Insurance Premium) <span>{formatCurrency(deduction80d)}</span></label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="tax-80d-slider" className="label-text mb-0">80D (Health Premium)</label>
+                <input 
+                  type="number" 
+                  value={deduction80d} 
+                  onChange={(e) => setDeduction80d(Math.min(100000, Math.max(0, Number(e.target.value))))} 
+                  className="bg-dark-900/60 border border-white/10 rounded px-2 py-0.5 text-xs text-gold-400 font-bold w-24 text-right focus:outline-none focus:border-gold-500"
+                  aria-label="Section 80D health deduction value"
+                />
+              </div>
               <input 
                 id="tax-80d-slider"
                 type="range" 
@@ -180,7 +185,16 @@ const TaxCalculator = () => {
             </div>
             
             <div>
-              <label htmlFor="tax-homeloan-slider" className="label-text flex justify-between">Home Loan Interest (Sec 24) <span>{formatCurrency(homeLoanInt)}</span></label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="tax-homeloan-slider" className="label-text mb-0">Home Loan Interest (Sec 24)</label>
+                <input 
+                  type="number" 
+                  value={homeLoanInt} 
+                  onChange={(e) => setHomeLoanInt(Math.min(200000, Math.max(0, Number(e.target.value))))} 
+                  className="bg-dark-900/60 border border-white/10 rounded px-2 py-0.5 text-xs text-gold-400 font-bold w-24 text-right focus:outline-none focus:border-gold-500"
+                  aria-label="Home loan interest deduction value"
+                />
+              </div>
               <input 
                 id="tax-homeloan-slider"
                 type="range" 
@@ -195,7 +209,16 @@ const TaxCalculator = () => {
             </div>
             
             <div>
-              <label htmlFor="tax-other-slider" className="label-text flex justify-between">Other Deductions (NPS, etc.) <span>{formatCurrency(otherDeductions)}</span></label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="tax-other-slider" className="label-text mb-0">Other Deductions (NPS, etc.)</label>
+                <input 
+                  type="number" 
+                  value={otherDeductions} 
+                  onChange={(e) => setOtherDeductions(Math.min(500000, Math.max(0, Number(e.target.value))))} 
+                  className="bg-dark-900/60 border border-white/10 rounded px-2 py-0.5 text-xs text-gold-400 font-bold w-24 text-right focus:outline-none focus:border-gold-500"
+                  aria-label="Other standard deductions value"
+                />
+              </div>
               <input 
                 id="tax-other-slider"
                 type="range" 
@@ -219,12 +242,16 @@ const TaxCalculator = () => {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gold-500/10 rounded-full blur-3xl" aria-hidden="true"></div>
             
             <h3 className="text-gray-400 font-medium mb-2">Recommended Regime</h3>
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4">
               <span className="text-4xl md:text-5xl font-display font-bold text-gold-400">{recommendedRegime}</span>
               <CheckCircle2 className="text-green-400 w-8 h-8" aria-hidden="true" />
             </div>
             
-            <p className="text-gray-300 flex items-center gap-2" role="status">
+            <p className="text-xs text-gray-300 leading-relaxed mb-4">
+              {rec.reasoning}
+            </p>
+
+            <p className="text-gray-300 flex items-center gap-2 text-sm" role="status">
               <AlertCircle size={18} className="text-blue-400" aria-hidden="true" />
               <span>You save <strong className="text-white mx-1">{formatCurrency(savings)}</strong> by choosing the {recommendedRegime}.</span>
             </p>
@@ -277,6 +304,146 @@ const TaxCalculator = () => {
             </div>
           </article>
 
+          {/* Step-by-Step Tax Breakdown Grid */}
+          <article className="glass-card p-6 md:p-8 space-y-4" aria-label="Step-by-Step Tax Comparison Breakdown">
+            <div>
+              <h3 className="text-md font-bold text-white">7-Step Transparent Tax Breakdown</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Compare exact tax calculation logic under both regimes side-by-side.</p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-white/10 text-gray-500 uppercase font-semibold">
+                    <th className="py-2.5">Calculation Step</th>
+                    <th className="py-2.5 text-right">Old Regime</th>
+                    <th className="py-2.5 text-right text-gold-400">New Regime</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-gray-300 font-medium">
+                  {/* Step 1 */}
+                  <tr>
+                    <td className="py-2.5">Step 1: Gross Annual Income</td>
+                    <td className="py-2.5 text-right font-semibold text-white">{formatCurrency(income)}</td>
+                    <td className="py-2.5 text-right font-semibold text-white">{formatCurrency(income)}</td>
+                  </tr>
+                  {/* Step 2 */}
+                  <tr>
+                    <td className="py-2.5">Step 2: Total Deductions / Exemptions</td>
+                    <td className="py-2.5 text-right text-red-400">-{formatCurrency(oldBreakdown.deductions.totalDeductions)}</td>
+                    <td className="py-2.5 text-right text-red-400">-{formatCurrency(newBreakdown.deductions.totalDeductions)}</td>
+                  </tr>
+                  <tr className="bg-white/5 text-[10px] text-gray-400">
+                    <td className="py-1.5 pl-4">↳ Standard Deduction</td>
+                    <td className="py-1.5 text-right">-{formatCurrency(oldBreakdown.deductions.standardDeduction)}</td>
+                    <td className="py-1.5 text-right">-{formatCurrency(newBreakdown.deductions.standardDeduction)}</td>
+                  </tr>
+                  {oldBreakdown.deductions.hraExemption > 0 && (
+                    <tr className="bg-white/5 text-[10px] text-gray-400">
+                      <td className="py-1.5 pl-4">↳ HRA Exemption</td>
+                      <td className="py-1.5 text-right">-{formatCurrency(oldBreakdown.deductions.hraExemption)}</td>
+                      <td className="py-1.5 text-right">-</td>
+                    </tr>
+                  )}
+                  {oldBreakdown.deductions.sec80C > 0 && (
+                    <tr className="bg-white/5 text-[10px] text-gray-400">
+                      <td className="py-1.5 pl-4">↳ Section 80C</td>
+                      <td className="py-1.5 text-right">-{formatCurrency(oldBreakdown.deductions.sec80C)}</td>
+                      <td className="py-1.5 text-right">-</td>
+                    </tr>
+                  )}
+                  {oldBreakdown.deductions.sec80D > 0 && (
+                    <tr className="bg-white/5 text-[10px] text-gray-400">
+                      <td className="py-1.5 pl-4">↳ Section 80D (Health)</td>
+                      <td className="py-1.5 text-right">-{formatCurrency(oldBreakdown.deductions.sec80D)}</td>
+                      <td className="py-1.5 text-right">-</td>
+                    </tr>
+                  )}
+                  {oldBreakdown.deductions.homeLoanSec24 > 0 && (
+                    <tr className="bg-white/5 text-[10px] text-gray-400">
+                      <td className="py-1.5 pl-4">↳ Home Loan (Sec 24)</td>
+                      <td className="py-1.5 text-right">-{formatCurrency(oldBreakdown.deductions.homeLoanSec24)}</td>
+                      <td className="py-1.5 text-right">-</td>
+                    </tr>
+                  )}
+                  {oldBreakdown.deductions.otherDeductions > 0 && (
+                    <tr className="bg-white/5 text-[10px] text-gray-400">
+                      <td className="py-1.5 pl-4">↳ Other Deductions</td>
+                      <td className="py-1.5 text-right">-{formatCurrency(oldBreakdown.deductions.otherDeductions)}</td>
+                      <td className="py-1.5 text-right">-</td>
+                    </tr>
+                  )}
+                  {/* Step 3 */}
+                  <tr>
+                    <td className="py-2.5">Step 3: Taxable Income</td>
+                    <td className="py-2.5 text-right font-bold text-white">{formatCurrency(oldBreakdown.taxableIncome)}</td>
+                    <td className="py-2.5 text-right font-bold text-gold-400">{formatCurrency(newBreakdown.taxableIncome)}</td>
+                  </tr>
+                  {/* Step 4 */}
+                  <tr>
+                    <td className="py-2.5">Step 4: Slab-wise Tax (Pre-Rebate)</td>
+                    <td className="py-2.5 text-right">{formatCurrency(oldBreakdown.slabTax)}</td>
+                    <td className="py-2.5 text-right">{formatCurrency(newBreakdown.slabTax)}</td>
+                  </tr>
+                  {/* Step 5 */}
+                  <tr>
+                    <td className="py-2.5">Step 5: Sec 87A Rebate Applied</td>
+                    <td className="py-2.5 text-right text-green-400">-{formatCurrency(oldBreakdown.rebateApplied)}</td>
+                    <td className="py-2.5 text-right text-green-400">-{formatCurrency(newBreakdown.rebateApplied)}</td>
+                  </tr>
+                  {/* Step 6 */}
+                  <tr>
+                    <td className="py-2.5">Step 6: Health & Education Cess (4%)</td>
+                    <td className="py-2.5 text-right">{formatCurrency(oldBreakdown.cess)}</td>
+                    <td className="py-2.5 text-right">{formatCurrency(newBreakdown.cess)}</td>
+                  </tr>
+                  {/* Step 7 */}
+                  <tr className="border-t border-white/10 text-sm">
+                    <td className="py-3 font-bold text-white">Step 7: Final Payable Tax</td>
+                    <td className="py-3 text-right font-extrabold text-white">{formatCurrency(oldBreakdown.finalTax)}</td>
+                    <td className="py-3 text-right font-extrabold text-gold-400">{formatCurrency(newBreakdown.finalTax)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Rebate Explanation Banner */}
+            {(oldBreakdown.rebateApplied > 0 || newBreakdown.rebateApplied > 0) && (
+              <div className="p-3.5 bg-green-500/5 border border-green-500/20 rounded-xl text-[11px] text-green-400 leading-relaxed space-y-1">
+                <span className="font-bold">📝 Rebate Calculations:</span>
+                {oldBreakdown.rebateApplied > 0 && <p><strong>Old Regime:</strong> {oldBreakdown.rebateExplanation}</p>}
+                {newBreakdown.rebateApplied > 0 && <p><strong>New Regime:</strong> {newBreakdown.rebateExplanation}</p>}
+              </div>
+            )}
+          </article>
+
+          {/* Tax Savings Opportunities */}
+          {rec.insights.length > 0 && (
+            <article className="glass-card p-6 md:p-8 space-y-4" aria-label="Tax Savings & Optimization Opportunities">
+              <div>
+                <h3 className="text-md font-bold text-white flex items-center gap-2">
+                  <CheckCircle2 className="text-gold-400 w-5 h-5" /> Tax Optimization Opportunities
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">Custom, actionable pathways to legally minimize your tax liability.</p>
+              </div>
+
+              <div className="space-y-4">
+                {rec.insights.map((insight) => (
+                  <div key={insight.id} className="p-4 bg-white/5 border border-white/5 rounded-2xl space-y-2 hover:border-gold-500/20 transition-all text-xs">
+                    <span className="font-bold text-white text-sm flex items-center gap-1.5">
+                      💡 {insight.title}
+                    </span>
+                    <p className="text-gray-300 leading-relaxed">{insight.description}</p>
+                    <p className="text-[10px] text-gray-400 leading-relaxed italic"><span className="font-semibold not-italic">Tax Impact:</span> {insight.impact}</p>
+                    <div className="text-[10px] text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
+                      <ArrowRight size={10} className="text-gold-400" /> Action: {insight.actionableStep}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </article>
+          )}
+
         </section>
       </div>
 
@@ -306,6 +473,13 @@ const TaxCalculator = () => {
           </article>
         </div>
       </section>
+
+      {/* Light Disclaimer */}
+      <footer className="text-[10px] text-gray-500 text-center leading-relaxed max-w-2xl mx-auto pt-6">
+        <p>
+          <strong>Disclaimer:</strong> Tax calculations and recommendations are illustrative estimates based on rules declared for FY 2025-26 (AY 2026-27). Actual liability may vary based on special income brackets (like long-term capital gains, surcharge triggers, or professional tax deductions). Consult a qualified tax professional before filing.
+        </p>
+      </footer>
       
     </main>
   );
