@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import useFinanceStore from '../store/useFinanceStore';
 import SubNav from '../components/common/SubNav';
+import SEO from '../components/common/SEO';
 import { PieChart as ReChartsPie, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Plus, Trash2, Upload, AlertCircle, AlertTriangle, CheckCircle, Receipt, Search, Filter, Info } from 'lucide-react';
+import { Plus, Trash2, Upload, AlertCircle, AlertTriangle, CheckCircle, Receipt, Search, Filter, Info, BookOpen } from 'lucide-react';
 import { Expense } from '../types/finance';
 
 const CATEGORIES = [
@@ -241,14 +242,41 @@ const ExpenseEngine = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Machine-readable profile for future AI copilots
+  const aiMachineExpensesProfile = {
+    totalItemsLogged: expenses.length,
+    netSpentThisMonth: totalSpent,
+    monthlyExpenseCap: profile.monthlyExpenses,
+    topCategories: chartData.map(c => ({ category: c.name, amount: c.value, sharePct: Math.round((c.value/totalSpent)*100) })),
+    budgetLimitRemaining: Math.max(0, profile.monthlyExpenses - totalSpent),
+    hasTriggeredAlerts: overspendAlerts.length > 0
+  };
+
+  // Structured plain-text description for Recharts Pie Chart
+  const getChartDescription = () => {
+    if (chartData.length === 0) return 'No spending data has been recorded for this month.';
+    const topCat = chartData[0];
+    const topPct = Math.round((topCat.value / (totalSpent || 1)) * 100);
+    return `This visual chart displays a percentage breakdown of your expenses. You have logged ₹${totalSpent.toLocaleString('en-IN')} in outflows. Your single highest category of expenditure is "${topCat.name}" which consumes ₹${topCat.value.toLocaleString('en-IN')}, representing ${topPct}% of your total outlays.`;
+  };
+
   return (
-    <div className="min-h-screen bg-dark-950 text-white pb-20">
+    <main 
+      className="min-h-screen bg-dark-950 text-white pb-20"
+      role="main"
+      data-expenses-profile={JSON.stringify(aiMachineExpensesProfile)}
+    >
+      <SEO 
+        title="Expense Analysis Engine"
+        description="Track your monthly outlays manually or upload bank CSV sheets. Auto-categorize spending into standard Indian budgeting buckets with graphical share metrics."
+        keywords="expense ledger, bulk CSV uploader, bank statement parser, dining out budget, shopping tracker, Indian investor"
+      />
       <SubNav />
 
       <div className="container mx-auto px-6 max-w-7xl pt-10 space-y-10">
         
         {/* Header */}
-        <div className="flex justify-between items-center border-b border-white/5 pb-6">
+        <header className="flex justify-between items-center border-b border-white/5 pb-6">
           <div>
             <h1 className="heading-2">Expense Analysis Engine</h1>
             <p className="text-gray-400">Log, categorize, and visualizes your outflows to eliminate cash drain.</p>
@@ -256,27 +284,29 @@ const ExpenseEngine = () => {
           <button 
             onClick={clearExpenses}
             className="text-xs text-gray-500 hover:text-red-400 font-medium transition-colors"
+            aria-label="Delete all transactions in ledger"
           >
             Clear Ledger
           </button>
-        </div>
+        </header>
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: Entry and CSV Parsers */}
-          <div className="lg:col-span-4 space-y-6">
+          <aside className="lg:col-span-4 space-y-6" aria-label="Transaction Entry Tools">
             
             {/* Manual entry card */}
-            <div className="glass-card p-6 border-white/5">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+            <section className="glass-card p-6 border-white/5" aria-label="Manual Transaction Logger">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
                 <Receipt className="text-gold-400" /> Log Single Transaction
-              </h3>
+              </h2>
               
               <form onSubmit={handleManualSubmit} className="space-y-4">
                 <div>
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Amount (₹)</label>
+                  <label htmlFor="tx-amount" className="text-xs text-gray-400 font-medium block mb-1">Amount (₹)</label>
                   <input 
+                    id="tx-amount"
                     type="number" 
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
@@ -288,8 +318,9 @@ const ExpenseEngine = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Date</label>
+                  <label htmlFor="tx-date" className="text-xs text-gray-400 font-medium block mb-1">Date</label>
                   <input 
+                    id="tx-date"
                     type="date" 
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
@@ -299,8 +330,9 @@ const ExpenseEngine = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Standard Category</label>
+                  <label htmlFor="tx-category" className="text-xs text-gray-400 font-medium block mb-1">Standard Category</label>
                   <select 
+                    id="tx-category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="input-field text-sm py-2"
@@ -314,8 +346,9 @@ const ExpenseEngine = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Description / Memo</label>
+                  <label htmlFor="tx-desc" className="text-xs text-gray-400 font-medium block mb-1">Description / Memo</label>
                   <input 
+                    id="tx-desc"
                     type="text" 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -332,27 +365,33 @@ const ExpenseEngine = () => {
                   <Plus size={16} /> Log Expense
                 </button>
               </form>
-            </div>
+            </section>
 
             {/* CSV Sheets Upload */}
-            <div className="glass-card p-6 border-white/5 space-y-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <section className="glass-card p-6 border-white/5 space-y-4" aria-label="Bulk Bank Statement Parser">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <Upload className="text-gold-400" /> Bulk CSV Sheets Upload
-              </h3>
+              </h2>
               
               <p className="text-xs text-gray-400 leading-relaxed">
                 Upload bank CSV sheets. Artha parses entries and matches description tags (e.g. Swiggy, Uber) to standard categories.
               </p>
 
-              <div className="border border-dashed border-white/10 hover:border-gold-500/30 rounded-xl p-4 text-center cursor-pointer transition-colors relative">
+              <div 
+                className="border border-dashed border-white/10 hover:border-gold-500/30 rounded-xl p-4 text-center cursor-pointer transition-colors relative"
+                role="button"
+                aria-label="Upload CSV file button"
+              >
                 <input 
+                  id="csv-file-input"
                   type="file" 
                   accept=".csv"
                   onChange={handleCsvChange}
                   ref={fileInputRef}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  aria-label="Choose banking CSV sheet to parse"
                 />
-                <Upload className="w-8 h-8 mx-auto text-gray-500 mb-2" />
+                <Upload className="w-8 h-8 mx-auto text-gray-500 mb-2" aria-hidden="true" />
                 <span className="text-xs text-gray-300 font-medium block">
                   {csvFile ? csvFile.name : 'Choose CSV file'}
                 </span>
@@ -362,14 +401,17 @@ const ExpenseEngine = () => {
               </div>
 
               {csvError && (
-                <div className="p-3 bg-red-500/5 border border-red-500/20 text-red-400 rounded-xl text-xs flex items-start gap-2">
+                <div 
+                  className="p-3 bg-red-500/5 border border-red-500/20 text-red-400 rounded-xl text-xs flex items-start gap-2"
+                  role="alert"
+                >
                   <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
                   <span>{csvError}</span>
                 </div>
               )}
 
               {csvPreview.length > 0 && (
-                <div className="space-y-3 animate-fade-in">
+                <div className="space-y-3 animate-fade-in" role="status">
                   <div className="p-3 bg-green-500/5 border border-green-500/20 text-green-400 rounded-xl text-xs flex items-center gap-2">
                     <CheckCircle size={14} />
                     <span>Parsed {csvPreview.length} items. Ready to import!</span>
@@ -383,24 +425,24 @@ const ExpenseEngine = () => {
                   </button>
                 </div>
               )}
-            </div>
+            </section>
 
-          </div>
+          </aside>
 
           {/* Right Column: Visual analytics, overspending warnings, ledger */}
-          <div className="lg:col-span-8 space-y-6">
+          <section className="lg:col-span-8 space-y-6" aria-label="Spending Diagnostics & Analytics">
             
             {/* Split row: Recharts breakdown & Progress Bars */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
               
               {/* Visual Pie */}
-              <div className="md:col-span-6 glass-card p-5 border-white/5 flex flex-col justify-between items-center h-80">
+              <article className="md:col-span-6 glass-card p-5 border-white/5 flex flex-col justify-between items-center h-80">
                 <div className="w-full text-left">
-                  <h4 className="text-sm font-bold text-gray-300">Category Share</h4>
+                  <h3 className="text-sm font-bold text-gray-300">Category Share</h3>
                   <p className="text-xs text-gray-500">Based on total logged expenses: ₹{totalSpent.toLocaleString('en-IN')}</p>
                 </div>
 
-                <div className="w-full h-48 relative">
+                <div className="w-full h-48 relative" aria-label="Visual breakdown pie chart">
                   {chartData.length === 0 ? (
                     <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500">
                       Log expenses to see breakdown.
@@ -430,11 +472,24 @@ const ExpenseEngine = () => {
                     </ResponsiveContainer>
                   )}
                 </div>
-              </div>
+                
+                {/* Explainable Text Caption for SEO and AI screen readers */}
+                <p className="sr-only" aria-live="polite">
+                  {getChartDescription()}
+                </p>
+                <div className="w-full text-left mt-2">
+                  <span className="text-[10px] text-gray-500 flex items-start gap-1 font-medium leading-relaxed bg-white/5 p-2 rounded-lg border border-white/5">
+                    <Info size={12} className="text-gold-400 mt-0.5 flex-shrink-0" />
+                    <span>
+                      <strong className="text-gray-400">Interpretation:</strong> {getChartDescription()}
+                    </span>
+                  </span>
+                </div>
+              </article>
 
               {/* Progress Bars Category lists */}
-              <div className="md:col-span-6 glass-card p-5 border-white/5 h-80 overflow-y-auto space-y-3 scrollbar-hide">
-                <h4 className="text-sm font-bold text-gray-300">Category Outlays</h4>
+              <article className="md:col-span-6 glass-card p-5 border-white/5 h-80 overflow-y-auto space-y-3 scrollbar-hide">
+                <h3 className="text-sm font-bold text-gray-300">Category Outlays</h3>
                 {chartData.length === 0 ? (
                   <div className="text-xs text-gray-500 h-full flex items-center justify-center">
                     No transactions registered.
@@ -460,13 +515,13 @@ const ExpenseEngine = () => {
                     );
                   })
                 )}
-              </div>
+              </article>
 
             </div>
 
             {/* Overspending alerts display */}
             {overspendAlerts.length > 0 && (
-              <div className="space-y-2.5">
+              <div className="space-y-2.5" role="alert">
                 {overspendAlerts.map((alert, i) => (
                   <div 
                     key={i} 
@@ -484,7 +539,7 @@ const ExpenseEngine = () => {
             )}
 
             {/* Search, filters, Ledger list table */}
-            <div className="glass-card border-white/5 overflow-hidden">
+            <article className="glass-card border-white/5 overflow-hidden">
               <div className="p-4 bg-dark-900/40 border-b border-white/5 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                 <h3 className="text-md font-bold text-white flex items-center gap-1.5">
                   Expense Ledger <span className="text-xs text-gray-500 font-normal">({filteredLedger.length} items logged)</span>
@@ -493,8 +548,10 @@ const ExpenseEngine = () => {
                 <div className="flex w-full md:w-auto gap-3 items-center">
                   {/* Search */}
                   <div className="relative flex-1 md:flex-initial">
+                    <label htmlFor="search-tx-input" className="sr-only">Search transactions by description</label>
                     <Search className="w-4 h-4 text-gray-500 absolute left-3 top-2.5" />
                     <input 
+                      id="search-tx-input"
                       type="text"
                       placeholder="Search memo..."
                       value={searchTerm}
@@ -505,8 +562,10 @@ const ExpenseEngine = () => {
 
                   {/* Filter category */}
                   <div className="relative">
+                    <label htmlFor="filter-tx-select" className="sr-only">Filter transactions by category</label>
                     <Filter className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-2.5" />
                     <select
+                      id="filter-tx-select"
                       value={filterCategory}
                       onChange={(e) => setFilterCategory(e.target.value)}
                       className="input-field pl-9 py-1.5 text-xs w-full md:w-36 bg-dark-900"
@@ -568,6 +627,7 @@ const ExpenseEngine = () => {
                               onClick={() => deleteExpense(e.id)}
                               className="text-gray-500 hover:text-red-400 p-1 rounded transition-colors"
                               title="Delete Item"
+                              aria-label={`Remove transaction for ${e.description}`}
                             >
                               <Trash2 size={15} />
                             </button>
@@ -579,14 +639,41 @@ const ExpenseEngine = () => {
                 </table>
               </div>
 
-            </div>
+            </article>
 
-          </div>
+          </section>
 
         </div>
 
+        {/* Structured Static Educational Guide Section */}
+        <section className="pt-10 border-t border-white/5 space-y-6" aria-label="Budgeting and Ledger Educational Guide">
+          <h2 className="heading-3 flex items-center gap-2">
+            <BookOpen className="text-gold-400" /> Accounting and Tracking Principles
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">1. Psychology of Discretionary Wants</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Discretionary Wants (food delivery ordering, shopping, high-end travel) represent the largest leakages in an investor’s cashflow. Unlike fixed Needs (rent, EMI) which are structural, Wants can be dialed back. Regularly tracking these outlays creates behavioral friction, immediately reducing unnecessary overspending.
+              </p>
+            </article>
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">2. Automated Accounting Benefits</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Manual transaction logging, while accurate, suffers from human friction and skipped logs. Standard banking CSV parsing completely automates this lifecycle. Reviewing parsed items allows you to run aggregate audits on your statement, surfacing hidden subscription fees or credit drag errors.
+              </p>
+            </article>
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">3. Direct Compounding Link</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Saving is not about restriction; it is about allocating resources. Shifting just ₹5,000 monthly from a low-value Want category (like unwatched subscriptions) into an equity Systematic Investment Plan (SIP) compounding at 12% results in a buffer of over **₹11.5 Lakhs** across a 10-year horizon.
+              </p>
+            </article>
+          </div>
+        </section>
+
       </div>
-    </div>
+    </main>
   );
 };
 

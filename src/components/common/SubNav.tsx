@@ -23,12 +23,17 @@ const SubNav = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="w-full bg-dark-900/60 backdrop-blur-md border-b border-white/5 sticky top-[72px] z-40 py-3 overflow-x-auto scrollbar-hide">
+    <nav 
+      role="navigation" 
+      aria-label="Financial Intelligence Navigation"
+      className="w-full bg-dark-900/60 backdrop-blur-md border-b border-white/5 sticky top-[72px] z-40 py-3 overflow-x-auto scrollbar-hide"
+    >
       <div className="container mx-auto px-6 max-w-7xl flex gap-3 md:gap-4 items-center justify-start md:justify-center">
         {links.map((link) => (
           <Link
             key={link.name}
             to={link.path}
+            aria-current={isActive(link.path) ? 'page' : undefined}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-300 ${
               isActive(link.path)
                 ? 'bg-gradient-gold text-dark-900 font-semibold shadow-gold'
@@ -40,7 +45,7 @@ const SubNav = () => {
           </Link>
         ))}
       </div>
-    </div>
+    </nav>
   );
 };
 

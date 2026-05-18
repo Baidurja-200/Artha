@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import useFinanceStore from '../store/useFinanceStore';
 import SubNav from '../components/common/SubNav';
-import { Target, TrendingUp, Info, HelpCircle, ShieldAlert, ArrowRight, Plus, Trash2, Calendar, IndianRupee } from 'lucide-react';
+import SEO from '../components/common/SEO';
+import { Target, TrendingUp, Info, HelpCircle, ShieldAlert, ArrowRight, Plus, Trash2, Calendar, IndianRupee, BookOpen } from 'lucide-react';
 import { calculateGoalReadiness } from '../services/analyticsEngine';
 
 const FinancialHealth = () => {
@@ -69,35 +70,64 @@ const FinancialHealth = () => {
   // Recharts/circular meter offset
   const scoreOffset = 440 - (440 * overallScore) / 100;
 
+  // Structured machine-readable object for future AI assistants
+  const aiMachineProfile = {
+    overallIndex: overallScore,
+    classification: scoreCat.label,
+    monthlyIncome: profile.monthlyIncome,
+    monthlyExpenses: profile.monthlyExpenses,
+    debtEMI: profile.debtEMI,
+    emergencyReserve: profile.emergencyFund,
+    equitySIP: investments?.totalSIP || profile.currentSIPs,
+    tax80cAllocated: profile.tax80c,
+    emergencyMonthsRunway: profile.emergencyFund / (profile.monthlyExpenses || 1),
+    debtToIncomeRatio: (profile.debtEMI / (profile.monthlyIncome || 1)) * 100,
+    goalsCount: goals.length
+  };
+
   return (
-    <div className="min-h-screen bg-dark-950 text-white pb-20">
+    <main 
+      className="min-h-screen bg-dark-950 text-white pb-20"
+      role="main"
+      data-financial-profile={JSON.stringify(aiMachineProfile)}
+    >
+      <SEO 
+        title="Financial Health Engine"
+        description="Evaluate and stress-test your overall personal financial health score in real-time. Calculate emergency runways, debt load ratios, and inflation-aware compounding milestones."
+        keywords="financial health index, emergency fund calculator, debt load ratio, personal finance India, SIP compounding calculators, inflation goals"
+      />
+      
       <SubNav />
 
       <div className="container mx-auto px-6 max-w-7xl pt-10 space-y-10">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="heading-2">Financial Health Engine</h1>
             <p className="text-gray-400">Evaluate, stress-test, and align your finances with absolute clarity.</p>
           </div>
-          <div className={`px-4 py-2 rounded-xl border ${scoreCat.bg} flex items-center gap-2`}>
+          <div 
+            className={`px-4 py-2 rounded-xl border ${scoreCat.bg} flex items-center gap-2`}
+            role="status"
+            aria-live="polite"
+          >
             <span className="w-2.5 h-2.5 rounded-full bg-gold-400 animate-pulse"></span>
             <span className="text-sm font-semibold text-gray-300">
               Wellness Index: <span className={scoreCat.color}>{overallScore}/100</span> ({scoreCat.label})
             </span>
           </div>
-        </div>
+        </header>
 
         {/* Top Split Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: Interactive Inputs Panel */}
-          <div className="lg:col-span-5 glass-card p-6 border-white/5 space-y-6 h-fit sticky top-28">
+          <section className="lg:col-span-5 glass-card p-6 border-white/5 space-y-6 h-fit sticky top-28" aria-label="Interactive Simulator Parameters">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <TrendingUp className="text-gold-400" /> Interactive Cashflow Simulator
-              </h3>
+              </h2>
               <p className="text-xs text-gray-400 mt-1">Slide or edit numbers to see your scores adjust instantly.</p>
             </div>
 
@@ -105,7 +135,7 @@ const FinancialHealth = () => {
               {/* Income */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <label className="text-gray-300 font-medium flex items-center gap-1.5">
+                  <label htmlFor="salary-slider" className="text-gray-300 font-medium flex items-center gap-1.5">
                     Monthly Inflow (Salary/Business)
                   </label>
                   <span className="text-gold-400 font-bold text-base">
@@ -113,6 +143,7 @@ const FinancialHealth = () => {
                   </span>
                 </div>
                 <input 
+                  id="salary-slider"
                   type="range" 
                   min="20000" 
                   max="500000" 
@@ -120,18 +151,20 @@ const FinancialHealth = () => {
                   value={profile.monthlyIncome} 
                   onChange={(e) => handleProfileChange('monthlyIncome', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Monthly Salary Inflow"
                 />
               </div>
 
               {/* Core Living Expenses */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <label className="text-gray-300 font-medium">Monthly Living Expenses</label>
+                  <label htmlFor="expenses-slider" className="text-gray-300 font-medium">Monthly Living Expenses</label>
                   <span className="text-gold-400 font-bold text-base">
                     ₹ {profile.monthlyExpenses.toLocaleString('en-IN')}
                   </span>
                 </div>
                 <input 
+                  id="expenses-slider"
                   type="range" 
                   min="10000" 
                   max="300000" 
@@ -139,18 +172,20 @@ const FinancialHealth = () => {
                   value={profile.monthlyExpenses} 
                   onChange={(e) => handleProfileChange('monthlyExpenses', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Monthly Living Expenses"
                 />
               </div>
 
               {/* Debt EMI */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <label className="text-gray-300 font-medium">Monthly Debt/EMI Commitments</label>
+                  <label htmlFor="emi-slider" className="text-gray-300 font-medium">Monthly Debt/EMI Commitments</label>
                   <span className="text-red-400 font-bold text-base">
                     ₹ {profile.debtEMI.toLocaleString('en-IN')}
                   </span>
                 </div>
                 <input 
+                  id="emi-slider"
                   type="range" 
                   min="0" 
                   max="150000" 
@@ -158,18 +193,20 @@ const FinancialHealth = () => {
                   value={profile.debtEMI} 
                   onChange={(e) => handleProfileChange('debtEMI', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Monthly Debt Repayments"
                 />
               </div>
 
               {/* Emergency Reserve */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <label className="text-gray-300 font-medium">Emergency Reserve (Liquid Cash/FD)</label>
+                  <label htmlFor="reserve-slider" className="text-gray-300 font-medium">Emergency Reserve (Liquid Cash/FD)</label>
                   <span className="text-green-400 font-bold text-base">
                     ₹ {profile.emergencyFund.toLocaleString('en-IN')}
                   </span>
                 </div>
                 <input 
+                  id="reserve-slider"
                   type="range" 
                   min="0" 
                   max="1000000" 
@@ -177,6 +214,7 @@ const FinancialHealth = () => {
                   value={profile.emergencyFund} 
                   onChange={(e) => handleProfileChange('emergencyFund', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Emergency cash buffers"
                 />
                 <p className="text-[10px] text-gray-500 italic">
                   Covers approx. {(profile.emergencyFund / (profile.monthlyExpenses || 1)).toFixed(1)} months of expenses.
@@ -186,12 +224,13 @@ const FinancialHealth = () => {
               {/* SIP Investments */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <label className="text-gray-300 font-medium">Monthly Equity SIP Contributions</label>
+                  <label htmlFor="sip-slider" className="text-gray-300 font-medium">Monthly Equity SIP Contributions</label>
                   <span className="text-blue-400 font-bold text-base">
                     ₹ {(investments?.totalSIP || profile.currentSIPs).toLocaleString('en-IN')}
                   </span>
                 </div>
                 <input 
+                  id="sip-slider"
                   type="range" 
                   min="0" 
                   max="150000" 
@@ -199,18 +238,20 @@ const FinancialHealth = () => {
                   value={investments?.totalSIP || profile.currentSIPs} 
                   onChange={(e) => handleProfileChange('currentSIPs', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Systematic equity investments"
                 />
               </div>
 
               {/* Tax Savings 80C */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <label className="text-gray-300 font-medium">Section 80C Tax-Saving Investments</label>
+                  <label htmlFor="tax-slider" className="text-gray-300 font-medium">Section 80C Tax-Saving Investments</label>
                   <span className="text-purple-400 font-bold text-base">
                     ₹ {profile.tax80c.toLocaleString('en-IN')}
                   </span>
                 </div>
                 <input 
+                  id="tax-slider"
                   type="range" 
                   min="0" 
                   max="150000" 
@@ -218,6 +259,7 @@ const FinancialHealth = () => {
                   value={profile.tax80c} 
                   onChange={(e) => handleProfileChange('tax80c', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Section 80C tax allocations"
                 />
               </div>
             </div>
@@ -243,15 +285,15 @@ const FinancialHealth = () => {
               </div>
             </div>
 
-          </div>
+          </section>
 
           {/* Right Column: Diagnostic Dashboard & Detailed Scores */}
-          <div className="lg:col-span-7 space-y-8">
+          <section className="lg:col-span-7 space-y-8" aria-label="Financial Diagnostic Summary">
             
             {/* Top Score Radial Card */}
-            <div className="glass-card p-6 flex flex-col md:flex-row gap-8 items-center border-gold-500/10">
-              <div className="relative w-40 h-40 flex-shrink-0">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
+            <article className="glass-card p-6 flex flex-col md:flex-row gap-8 items-center border-gold-500/10">
+              <div className="relative w-40 h-40 flex-shrink-0" aria-label={`Visual score dial representing ${overallScore} out of 100`}>
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160" aria-hidden="true">
                   <circle cx="80" cy="80" r="70" className="stroke-dark-800" strokeWidth="12" fill="none" />
                   <circle 
                     cx="80" cy="80" r="70" 
@@ -272,9 +314,9 @@ const FinancialHealth = () => {
               </div>
 
               <div className="flex-1 w-full text-center md:text-left space-y-3">
-                <h3 className="text-xl font-bold text-white flex items-center justify-center md:justify-start gap-2">
+                <h2 className="text-xl font-bold text-white flex items-center justify-center md:justify-start gap-2">
                   What does this mean?
-                </h3>
+                </h2>
                 <p className="text-sm text-gray-300 leading-relaxed">
                   {metrics.detailedScores[0]?.what}
                 </p>
@@ -283,13 +325,13 @@ const FinancialHealth = () => {
                   {metrics.detailedScores[0]?.why}
                 </div>
               </div>
-            </div>
+            </article>
 
             {/* Detailed Health Accordions */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <HelpCircle className="text-gold-400" /> Five Pillars of Financial Health
-              </h3>
+              </h2>
               
               {metrics.detailedScores.slice(1).map((detail: any, idx: number) => {
                 const index = idx + 1; // since overall score is index 0
@@ -300,16 +342,18 @@ const FinancialHealth = () => {
                 const bgScoreColor = scoreVal >= 80 ? 'bg-green-400/10' : scoreVal >= 60 ? 'bg-blue-400/10' : scoreVal >= 40 ? 'bg-yellow-400/10' : 'bg-red-400/10';
 
                 return (
-                  <div key={detail.id} className="glass-card border border-white/5 overflow-hidden transition-all duration-300">
+                  <article key={detail.id} className="glass-card border border-white/5 overflow-hidden transition-all duration-300">
                     <button 
                       onClick={() => setExpandedIndex(isExpanded ? null : index)}
                       className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-white/5 transition-colors"
+                      aria-expanded={isExpanded}
+                      aria-controls={`pillar-detail-${detail.id}`}
                     >
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-bold text-sm md:text-base ${bgScoreColor} ${scoreColor}`}>
                           {scoreVal}
                         </div>
-                        <h4 className="text-base md:text-lg font-semibold text-white text-left">{detail.title}</h4>
+                        <h3 className="text-base md:text-lg font-semibold text-white text-left">{detail.title}</h3>
                       </div>
                       <span className="text-xs text-gold-400 font-semibold underline">
                         {isExpanded ? 'Hide' : 'Explain'}
@@ -317,23 +361,26 @@ const FinancialHealth = () => {
                     </button>
                     
                     {isExpanded && (
-                      <div className="p-5 pt-0 border-t border-white/5 bg-dark-900/30 space-y-4 animate-fade-in">
+                      <div 
+                        id={`pillar-detail-${detail.id}`}
+                        className="p-5 pt-0 border-t border-white/5 bg-dark-900/30 space-y-4 animate-fade-in"
+                      >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                           <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">What it means</p>
+                            <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">What it means</h4>
                             <p className="text-sm text-gray-300 leading-relaxed mb-4">{detail.what}</p>
                             
-                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">Why it matters</p>
+                            <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">Why it matters</h4>
                             <p className="text-sm text-gray-300 leading-relaxed">{detail.why}</p>
                           </div>
 
                           <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">Diagnostic Risk</p>
+                            <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">Diagnostic Risk</h4>
                             <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl text-sm text-gray-300 mb-4 leading-relaxed">
                               {detail.risk}
                             </div>
                             
-                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">Actionable Improvement</p>
+                            <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">Actionable Improvement</h4>
                             <div className="p-3 bg-gold-500/5 border border-gold-500/10 rounded-xl text-sm text-gray-200 leading-relaxed">
                               <TrendingUp className="inline-block w-4 h-4 mr-2 text-gold-400" />
                               {detail.suggestion}
@@ -342,17 +389,17 @@ const FinancialHealth = () => {
                         </div>
                       </div>
                     )}
-                  </div>
+                  </article>
                 );
               })}
             </div>
 
-          </div>
+          </section>
 
         </div>
 
         {/* Goal Planning & Readiness Section */}
-        <section className="pt-10 border-t border-white/5 space-y-6">
+        <section className="pt-10 border-t border-white/5 space-y-6" aria-label="Goal Readiness & Planning Engine">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h2 className="heading-3 flex items-center gap-2">
@@ -365,6 +412,7 @@ const FinancialHealth = () => {
             <button 
               onClick={() => setShowAddGoal(!showAddGoal)}
               className="btn-primary text-xs py-2 px-4 flex items-center gap-2 whitespace-nowrap"
+              aria-expanded={showAddGoal}
             >
               <Plus size={16} /> Plan New Goal
             </button>
@@ -377,8 +425,9 @@ const FinancialHealth = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Goal Name</label>
+                  <label htmlFor="goal-name" className="text-xs text-gray-400 font-medium block mb-1">Goal Name</label>
                   <input 
+                    id="goal-name"
                     type="text" 
                     placeholder="e.g. Children's Higher Education" 
                     value={newGoal.name}
@@ -388,8 +437,9 @@ const FinancialHealth = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Goal Category</label>
+                  <label htmlFor="goal-category" className="text-xs text-gray-400 font-medium block mb-1">Goal Category</label>
                   <select 
+                    id="goal-category"
                     value={newGoal.category}
                     onChange={(e) => setNewGoal({...newGoal, category: e.target.value})}
                     className="input-field py-2 text-sm"
@@ -402,8 +452,9 @@ const FinancialHealth = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Target Amount (₹ today's cost)</label>
+                  <label htmlFor="goal-target" className="text-xs text-gray-400 font-medium block mb-1">Target Amount (₹ today's cost)</label>
                   <input 
+                    id="goal-target"
                     type="number" 
                     value={newGoal.target}
                     onChange={(e) => setNewGoal({...newGoal, target: Number(e.target.value)})}
@@ -413,8 +464,9 @@ const FinancialHealth = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Current Dedicated Corpus (₹)</label>
+                  <label htmlFor="goal-current" className="text-xs text-gray-400 font-medium block mb-1">Current Dedicated Corpus (₹)</label>
                   <input 
+                    id="goal-current"
                     type="number" 
                     value={newGoal.current}
                     onChange={(e) => setNewGoal({...newGoal, current: Number(e.target.value)})}
@@ -424,8 +476,9 @@ const FinancialHealth = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-xs text-gray-400 font-medium block mb-1">Timeline to Reach Goal ({newGoal.timelineYears} years)</label>
+                  <label htmlFor="goal-timeline" className="text-xs text-gray-400 font-medium block mb-1">Timeline to Reach Goal ({newGoal.timelineYears} years)</label>
                   <input 
+                    id="goal-timeline"
                     type="range" 
                     min="1" 
                     max="40" 
@@ -483,19 +536,20 @@ const FinancialHealth = () => {
                 const projectedPercent = projection.readinessProbability;
 
                 return (
-                  <div key={g.id} className="glass-card p-6 border-white/5 space-y-4 hover:border-gold-500/20 transition-all flex flex-col justify-between">
+                  <article key={g.id} className="glass-card p-6 border-white/5 space-y-4 hover:border-gold-500/20 transition-all flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start gap-2 mb-2">
                         <div>
                           <span className="text-[10px] uppercase font-bold text-gold-500 bg-gold-500/10 px-2 py-0.5 rounded border border-gold-500/20">
                             {g.category}
                           </span>
-                          <h4 className="text-lg font-bold text-white mt-1.5">{g.name}</h4>
+                          <h3 className="text-lg font-bold text-white mt-1.5">{g.name}</h3>
                         </div>
                         <button 
                           onClick={() => deleteGoal(g.id)}
                           className="text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-colors"
                           title="Remove Goal"
+                          aria-label={`Delete ${g.name} goal`}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -559,15 +613,42 @@ const FinancialHealth = () => {
                       </div>
 
                     </div>
-                  </div>
+                  </article>
                 );
               })
             )}
           </div>
         </section>
 
+        {/* Structured Static Educational Guide Section */}
+        <section className="pt-10 border-t border-white/5 space-y-6" aria-label="Financial Wellness Educational Guide">
+          <h2 className="heading-3 flex items-center gap-2">
+            <BookOpen className="text-gold-400" /> Topical Financial Wellness Guidelines
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">1. Emergency Buffer Logic</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                An emergency buffer is your capital shield against life’s shocks (medical emergencies, unexpected job separations). Standard guidelines recommend storing exactly **6 months** of mandatory living expenses inside highly liquid deposits (Fds, liquid mutual funds) instead of investing them in volatile equities.
+              </p>
+            </article>
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">2. Indian Inflation and Real Yields</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                In India, structural inflation hovers around **5% to 6%** annually. Holding idle cash in a standard savings account yielding 3% translates into a net wealth decline of **-3% in purchasing power** annually. Achieving true compounding requires investing surplus capital in diversified assets returning 10-12%.
+              </p>
+            </article>
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">3. Systematically Pacing Debt</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Debt is a high-cost drag on cash flow. When monthly EMI commitments swallow over **35-40%** of your inflow, you are operating in a vulnerable state (high DTI). Unsecured debt (credit card EMIs, personal loans) charging 14-20% interest should be aggressively prepaid before equity allocation.
+              </p>
+            </article>
+          </div>
+        </section>
+
       </div>
-    </div>
+    </main>
   );
 };
 

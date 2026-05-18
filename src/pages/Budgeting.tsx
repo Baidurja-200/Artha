@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import useFinanceStore from '../store/useFinanceStore';
 import SubNav from '../components/common/SubNav';
-import { Target, PiggyBank, Smile, Lightbulb, TrendingUp, Sparkles, HelpCircle, Compass } from 'lucide-react';
+import SEO from '../components/common/SEO';
+import { Target, PiggyBank, Smile, Lightbulb, TrendingUp, Sparkles, HelpCircle, Compass, BookOpen } from 'lucide-react';
 
 const Budgeting = () => {
   const { expenses, profile, budget, updateBudget, investments } = useFinanceStore();
@@ -146,27 +147,54 @@ const Budgeting = () => {
 
   const suggestions = getSuggestions();
 
+  // Machine-readable data object for future AI agents
+  const aiMachineBudgetingProfile = {
+    income: monthlyIncome,
+    allocatedNeedsPct: needsPct,
+    allocatedWantsPct: wantsPct,
+    allocatedSavingsPct: savingsPct,
+    rupeeNeedsTarget: needsTarget,
+    rupeeWantsTarget: wantsTarget,
+    rupeeSavingsTarget: savingsTarget,
+    spentNeeds,
+    spentWants,
+    spentSavings,
+    needsProgressPct: needsUsedPct,
+    wantsProgressPct: wantsUsedPct,
+    savingsProgressPct: savingsUsedPct,
+    activeSuggestionsCount: suggestions.length
+  };
+
   return (
-    <div className="min-h-screen bg-dark-950 text-white pb-20">
+    <main 
+      className="min-h-screen bg-dark-950 text-white pb-20"
+      role="main"
+      data-budgeting-profile={JSON.stringify(aiMachineBudgetingProfile)}
+    >
+      <SEO 
+        title="Budget Assistant"
+        description="Configure your personalized 50/30/20 target framework, track real-time Needs vs Wants outlays, and gain human-friendly budgeting suggestions."
+        keywords="budget tracking, needs vs wants, 50 30 20 rule, savings rate goals, compounding mutual funds"
+      />
       <SubNav />
 
       <div className="container mx-auto px-6 max-w-7xl pt-10 space-y-10">
         
         {/* Header */}
-        <div className="border-b border-white/5 pb-6">
+        <header className="border-b border-white/5 pb-6">
           <h1 className="heading-2">Smart Budgeting Assistant</h1>
           <p className="text-gray-400">Configure your target allocations, map active outlays, and unlock stress-free cash management.</p>
-        </div>
+        </header>
 
         {/* Budget Allocation Configurator split */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: 50/30/20 Slider Matrix */}
-          <div className="lg:col-span-5 glass-card p-6 border-white/5 space-y-6 h-fit sticky top-28">
+          <section className="lg:col-span-5 glass-card p-6 border-white/5 space-y-6 h-fit sticky top-28" aria-label="Interactive Allocation Controls">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <Compass className="text-gold-400" /> Allocation Target Matrix
-              </h3>
+              </h2>
               <p className="text-xs text-gray-500 mt-1">Adjust sliders to customize your framework. Standard practice recommends the 50/30/20 rule.</p>
             </div>
 
@@ -174,18 +202,20 @@ const Budgeting = () => {
               {/* Needs Sliders */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-300 font-semibold flex items-center gap-1.5">
+                  <label htmlFor="budget-needs-slider" className="text-gray-300 font-semibold flex items-center gap-1.5">
                     <Target size={15} className="text-gold-400" /> Needs Target
-                  </span>
+                  </label>
                   <span className="text-gold-400 font-bold">{needsPct}% (₹{needsTarget.toLocaleString('en-IN')})</span>
                 </div>
                 <input 
+                  id="budget-needs-slider"
                   type="range"
                   min="20"
                   max="80"
                   value={needsPct}
                   onChange={(e) => handleSliderChange('needs', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Target Needs allocation percentage"
                 />
                 <p className="text-[10px] text-gray-500 leading-relaxed">
                   Rent, house EMIs, utilities, groceries, healthcare. Fixed mandatory overheads.
@@ -195,18 +225,20 @@ const Budgeting = () => {
               {/* Wants Sliders */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-300 font-semibold flex items-center gap-1.5">
+                  <label htmlFor="budget-wants-slider" className="text-gray-300 font-semibold flex items-center gap-1.5">
                     <Smile size={15} className="text-blue-400" /> Wants Target
-                  </span>
+                  </label>
                   <span className="text-blue-400 font-bold">{wantsPct}% (₹{wantsTarget.toLocaleString('en-IN')})</span>
                 </div>
                 <input 
+                  id="budget-wants-slider"
                   type="range"
                   min="10"
                   max="60"
                   value={wantsPct}
                   onChange={(e) => handleSliderChange('wants', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Target Wants allocation percentage"
                 />
                 <p className="text-[10px] text-gray-500 leading-relaxed">
                   Dining out, Swiggy, shopping, travel, subscriptions, movies. Lifestyle & discretionary.
@@ -216,18 +248,20 @@ const Budgeting = () => {
               {/* Savings Sliders */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-300 font-semibold flex items-center gap-1.5">
+                  <label htmlFor="budget-savings-slider" className="text-gray-300 font-semibold flex items-center gap-1.5">
                     <PiggyBank size={15} className="text-green-400" /> Savings Target
-                  </span>
+                  </label>
                   <span className="text-green-400 font-bold">{savingsPct}% (₹{savingsTarget.toLocaleString('en-IN')})</span>
                 </div>
                 <input 
+                  id="budget-savings-slider"
                   type="range"
                   min="10"
                   max="60"
                   value={savingsPct}
                   onChange={(e) => handleSliderChange('savings', Number(e.target.value))}
                   className="w-full accent-gold-500"
+                  aria-label="Target Savings allocation percentage"
                 />
                 <p className="text-[10px] text-gray-500 leading-relaxed">
                   Mutual Fund SIPs, emergency fund reserve top-ups, tax investments. Raw wealth building.
@@ -239,21 +273,21 @@ const Budgeting = () => {
             <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center text-xs text-gray-400 font-medium">
               Total Budget Allocation: <span className="text-white font-bold">{needsPct + wantsPct + savingsPct}%</span>
             </div>
-          </div>
+          </section>
 
           {/* Right Column: Bucket Progress Cards */}
-          <div className="lg:col-span-7 space-y-6">
+          <section className="lg:col-span-7 space-y-6" aria-label="Bucket Progress Metrics">
             
             {/* The 3 Progress Cards */}
             <div className="space-y-5">
               
               {/* Bucket 1: Needs */}
-              <div className="glass-card p-5 border-white/5 space-y-3">
+              <article className="glass-card p-5 border-white/5 space-y-3" aria-label="Needs Target Tracker">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="text-base font-bold text-white flex items-center gap-1.5">
+                    <h3 className="text-base font-bold text-white flex items-center gap-1.5">
                       Needs: Essential Bills
-                    </h4>
+                    </h3>
                     <p className="text-xs text-gray-500">Rent, EMIs, Utilities, Pharmacy</p>
                   </div>
                   <div className="text-right">
@@ -273,7 +307,7 @@ const Budgeting = () => {
                       style={{ width: `${Math.min(needsUsedPct, 100)}%` }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-400">
+                  <div className="flex justify-between text-xs text-gray-400" role="status">
                     <span>{needsUsedPct}% Used</span>
                     <span>
                       {needsTarget - spentNeeds >= 0 
@@ -283,15 +317,15 @@ const Budgeting = () => {
                     </span>
                   </div>
                 </div>
-              </div>
+              </article>
 
               {/* Bucket 2: Wants */}
-              <div className="glass-card p-5 border-white/5 space-y-3">
+              <article className="glass-card p-5 border-white/5 space-y-3" aria-label="Wants Target Tracker">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="text-base font-bold text-white flex items-center gap-1.5">
+                    <h3 className="text-base font-bold text-white flex items-center gap-1.5">
                       Wants: Discretionary Lifestyle
-                    </h4>
+                    </h3>
                     <p className="text-xs text-gray-500">Food, Shopping, Travel, Entertainment</p>
                   </div>
                   <div className="text-right">
@@ -311,7 +345,7 @@ const Budgeting = () => {
                       style={{ width: `${Math.min(wantsUsedPct, 100)}%` }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-400">
+                  <div className="flex justify-between text-xs text-gray-400" role="status">
                     <span>{wantsUsedPct}% Used</span>
                     <span>
                       {wantsTarget - spentWants >= 0 
@@ -321,15 +355,15 @@ const Budgeting = () => {
                     </span>
                   </div>
                 </div>
-              </div>
+              </article>
 
               {/* Bucket 3: Savings */}
-              <div className="glass-card p-5 border-white/5 space-y-3">
+              <article className="glass-card p-5 border-white/5 space-y-3" aria-label="Savings Target Tracker">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="text-base font-bold text-white flex items-center gap-1.5">
+                    <h3 className="text-base font-bold text-white flex items-center gap-1.5">
                       Savings & Long-term Wealth
-                    </h4>
+                    </h3>
                     <p className="text-xs text-gray-500">Mutual Fund SIPs, Emergency Reserves, PPF/ELSS</p>
                   </div>
                   <div className="text-right">
@@ -349,7 +383,7 @@ const Budgeting = () => {
                       style={{ width: `${Math.min(savingsUsedPct, 100)}%` }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-400">
+                  <div className="flex justify-between text-xs text-gray-400" role="status">
                     <span>{savingsUsedPct}% Achieved</span>
                     <span>
                       {savingsTarget - spentSavings > 0 
@@ -359,15 +393,15 @@ const Budgeting = () => {
                     </span>
                   </div>
                 </div>
-              </div>
+              </article>
 
             </div>
 
             {/* Smart Advisor Suggestions */}
-            <div className="glass-card p-6 border-white/5 space-y-4">
-              <h3 className="text-md font-bold text-white flex items-center gap-2">
+            <article className="glass-card p-6 border-white/5 space-y-4" aria-label="Personalized Allocation Advice">
+              <h2 className="text-md font-bold text-white flex items-center gap-2">
                 <Lightbulb className="text-gold-400" /> Smart Budgeting Advisor
-              </h3>
+              </h2>
               
               <div className="space-y-3">
                 {suggestions.map((sug, i) => (
@@ -382,8 +416,8 @@ const Budgeting = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <Sparkles size={16} className={sug.type === 'danger' ? 'text-red-400' : sug.type === 'warning' ? 'text-yellow-400' : 'text-green-400'} />
-                      <h4 className="text-sm font-bold text-white">{sug.title}</h4>
+                      <Sparkles size={16} className={sug.type === 'danger' ? 'text-red-400' : sug.type === 'warning' ? 'text-yellow-400' : 'text-green-400'} aria-hidden="true" />
+                      <h3 className="text-sm font-bold text-white">{sug.title}</h3>
                     </div>
                     <p className="text-xs text-gray-300 leading-relaxed">
                       {sug.text}
@@ -394,14 +428,41 @@ const Budgeting = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </article>
 
-          </div>
+          </section>
 
         </div>
 
+        {/* Structured Static Educational Guide Section */}
+        <section className="pt-10 border-t border-white/5 space-y-6" aria-label="Budgeting Frameworks Educational Guide">
+          <h2 className="heading-3 flex items-center gap-2">
+            <BookOpen className="text-gold-400" /> Budgeting and Cash Management Frameworks
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">1. The 50/30/20 Budgeting Rule</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                The 50/30/20 budget framework divides active net monthly paycheck income into: exactly **50% for core living Needs** (fixed bills, rent, EMIs), **30% for discretionary Wants** (dining out, entertainment), and **20% for future Savings** (compounding SIPs, emergency cash). It represents a simple, non-aggressive guide to ensure savings discipline.
+              </p>
+            </article>
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">2. Essential Needs vs Discretionary Wants</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Classifying expenses is critical. A "Need" is any outflow that causes immediate physical or financial survival issues if unpaid (electricity, home loan repayments, basic medicines). A "Want" is any discretionary outflow that can be skipped for a month without severe physical issues. Classifying items strictly prevents overrunning limits.
+              </p>
+            </article>
+            <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-white">3. Automating the Savings Target</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Human willpower is finite. Attempting to "save what is left at the end of the month" usually results in zero savings due to lifestyle inflation. The "Pay Yourself First" method overrides this by automating a fixed **20% savings SIP** to execute the day salary arrives, ensuring you invest before lifestyle spending occurs.
+              </p>
+            </article>
+          </div>
+        </section>
+
       </div>
-    </div>
+    </main>
   );
 };
 
