@@ -6,11 +6,37 @@ import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 import { History, TrendingUp, TrendingDown, ArrowUpRight, Award, IndianRupee, ShieldAlert, Sparkles, BookOpen, Info } from 'lucide-react';
 
 const Tracking = () => {
-  const { history } = useFinanceStore();
+  const { trackingHistory, profile } = useFinanceStore();
+
+  // Map store history to local history with all necessary properties populated (handling fallback values gracefully)
+  const history = (trackingHistory || []).map(entry => {
+    const dateObj = new Date(entry.date);
+    const month = dateObj.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+    
+    // Calculate fallback values for old hardcoded snapshots
+    const savingsRate = entry.savingsRate !== undefined 
+      ? entry.savingsRate 
+      : ((profile.monthlyIncome - profile.monthlyExpenses - (profile.debtEMI || 0)) / (profile.monthlyIncome || 1)) * 100;
+      
+    const debtEMI = profile.debtEMI || 0;
+    
+    const runwayMonths = entry.emergencyMonths !== undefined 
+      ? entry.emergencyMonths 
+      : (profile.emergencyFund / (profile.monthlyExpenses || 1));
+      
+    return {
+      month,
+      netWorth: entry.netWorth,
+      wellnessScore: entry.overallScore || 0,
+      savingsRate: Math.max(0, savingsRate),
+      debtEMI,
+      runwayMonths: runwayMonths || 0
+    };
+  });
 
   // If history is empty, fall back safely
-  const currentEntry = history[history.length - 1] || { netWorth: 0, wellnessScore: 0, savingsRate: 0, debtEMI: 0 };
-  const firstEntry = history[0] || { netWorth: 0, wellnessScore: 0, savingsRate: 0, debtEMI: 0 };
+  const currentEntry = history[history.length - 1] || { netWorth: 0, wellnessScore: 0, savingsRate: 0, debtEMI: 0, runwayMonths: 0 };
+  const firstEntry = history[0] || { netWorth: 0, wellnessScore: 0, savingsRate: 0, debtEMI: 0, runwayMonths: 0 };
 
   // Shifts calculations
   const netWorthShift = currentEntry.netWorth - firstEntry.netWorth;
