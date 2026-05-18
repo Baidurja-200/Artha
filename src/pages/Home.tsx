@@ -50,7 +50,7 @@ const Home = () => {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-slide-up" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
             <a 
-              href="https://chatgpt.com/g/g-h3p4eYl9e-artha" 
+              href="https://chatgpt.com/g/g-69955fc5ad588191a13c013623cb1fd9-artha" 
               target="_blank" 
               rel="noopener noreferrer"
               className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 text-lg px-8 py-4"

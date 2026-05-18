@@ -60,7 +60,7 @@ const Navbar = () => {
               My Profile
             </Link>
             <a 
-              href="https://chatgpt.com/g/g-h3p4eYl9e-artha" 
+              href="https://chatgpt.com/g/g-69955fc5ad588191a13c013623cb1fd9-artha" 
               target="_blank" 
               rel="noopener noreferrer"
               className="btn-primary py-2 px-5 text-sm flex items-center gap-2"
@@ -103,7 +103,7 @@ const Navbar = () => {
             My Profile
           </Link>
           <a 
-             href="https://chatgpt.com/g/g-h3p4eYl9e-artha" 
+             href="https://chatgpt.com/g/g-69955fc5ad588191a13c013623cb1fd9-artha" 
              target="_blank" 
              rel="noopener noreferrer"
              className="btn-primary flex justify-center mt-2"

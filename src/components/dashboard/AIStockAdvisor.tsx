@@ -30,7 +30,7 @@ const AIStockAdvisor = () => {
       </div>
 
       <a 
-        href="https://chatgpt.com/g/g-h3p4eYl9e-artha" 
+        href="https://chatgpt.com/g/g-69955fc5ad588191a13c013623cb1fd9-artha" 
         target="_blank" 
         rel="noopener noreferrer"
         className="btn-primary w-full flex items-center justify-center gap-2 group"

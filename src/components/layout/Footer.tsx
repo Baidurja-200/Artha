@@ -42,7 +42,7 @@ const Footer = () => {
             <h4 className="text-white font-semibold mb-4">Connect</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
-                <a href="https://chatgpt.com/g/g-h3p4eYl9e-artha" target="_blank" rel="noopener noreferrer" className="hover:text-gold-400 transition-colors flex items-center gap-2">
+                <a href="https://chatgpt.com/g/g-69955fc5ad588191a13c013623cb1fd9-artha" target="_blank" rel="noopener noreferrer" className="hover:text-gold-400 transition-colors flex items-center gap-2">
                   Chat with Artha AI <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                 </a>
               </li>

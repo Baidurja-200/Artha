@@ -338,7 +338,7 @@ const Portfolio = () => {
             <div className="mt-6 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-sm text-gray-400">Want a deep fundamental analysis of these stocks?</div>
               <a 
-                href="https://chatgpt.com/g/g-h3p4eYl9e-artha" 
+                href="https://chatgpt.com/g/g-69955fc5ad588191a13c013623cb1fd9-artha" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 text-sm py-2.5 px-5 shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:shadow-[0_0_25px_rgba(212,175,55,0.5)] transition-all"
