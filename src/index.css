@@ -93,3 +93,50 @@ input[type=range]::-moz-range-thumb {
 .text-gray-300 {
   color: #f4f4f5 !important;
 }
+
+/* Premium ambient background animations */
+@keyframes drift-slow-1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(40px, -60px, 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(-30px, 30px, 0) scale(0.95);
+  }
+}
+
+@keyframes drift-slow-2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-50px, 40px, 0) scale(0.98);
+  }
+}
+
+@keyframes drift-slow-3 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(35px, 50px, 0) scale(1.02);
+  }
+}
+
+.animate-drift-1 {
+  animation: drift-slow-1 25s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-drift-2 {
+  animation: drift-slow-2 35s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-drift-3 {
+  animation: drift-slow-3 30s ease-in-out infinite;
+  will-change: transform;
+}
+

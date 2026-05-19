@@ -30,7 +30,7 @@ const Home = () => {
 
   return (
     <main 
-      className="flex flex-col min-h-[calc(100vh-80px)] bg-dark-950 text-white"
+      className="flex flex-col min-h-[calc(100vh-80px)] bg-dark-950 text-white relative overflow-hidden"
       role="main"
       data-home-features={JSON.stringify(features.map(f => ({ title: f.title, description: f.description })))}
     >
@@ -39,6 +39,61 @@ const Home = () => {
         description="Artha is a Personal Financial Health & Decision Intelligence Platform for Indian retail investors. Access tax calculators, SIP projections, and risk analysis tools."
         keywords="personal finance India, wealth planning, direct mutual funds, portfolio analysis, SIP calculator, tax old vs new regime"
       />
+
+      {/* Premium Layered Ambient Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Fintech grid texture with vignette mask */}
+        <div 
+          className="absolute inset-0 opacity-[0.07]" 
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(212, 175, 55, 0.04) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(212, 175, 55, 0.04) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+            maskImage: 'radial-gradient(circle at 50% 30%, black 20%, transparent 80%)',
+            WebkitMaskImage: 'radial-gradient(circle at 50% 30%, black 20%, transparent 80%)',
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Ambient radial glows (soft gold, amber, champagne, soft white) */}
+        {/* Top-Right Glow (warm gold / champagne) */}
+        <div 
+          className="absolute top-[-5%] right-[-5%] w-[45vw] h-[45vw] max-w-[700px] rounded-full opacity-[0.09] blur-[130px] animate-drift-1"
+          style={{
+            background: 'radial-gradient(circle, rgba(214, 175, 55, 0.5) 0%, rgba(244, 224, 118, 0.2) 50%, transparent 100%)',
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Center/Behind Hero Cards Glow (champagne / soft white) */}
+        <div 
+          className="absolute top-[20%] left-[20%] w-[40vw] h-[40vw] max-w-[600px] rounded-full opacity-[0.06] blur-[120px] animate-drift-3"
+          style={{
+            background: 'radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(244, 224, 118, 0.1) 60%, transparent 100%)',
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Bottom-Left Accent (amber / muted gold) */}
+        <div 
+          className="absolute bottom-[15%] left-[-10%] w-[50vw] h-[50vw] max-w-[800px] rounded-full opacity-[0.08] blur-[140px] animate-drift-2"
+          style={{
+            background: 'radial-gradient(circle, rgba(214, 175, 55, 0.4) 0%, rgba(245, 158, 11, 0.15) 50%, transparent 100%)',
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Additional very soft ambient bottom-right glow */}
+        <div 
+          className="absolute bottom-[-10%] right-[-5%] w-[35vw] h-[35vw] max-w-[500px] rounded-full opacity-[0.05] blur-[100px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(214, 175, 55, 0.3) 0%, transparent 70%)',
+          }}
+          aria-hidden="true"
+        />
+      </div>
 
       {/* Hero Section */}
       <section className="relative flex-grow flex items-center justify-center pt-20 pb-32 overflow-hidden" aria-label="Artha Introduction Hero">
