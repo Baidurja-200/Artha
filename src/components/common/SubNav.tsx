@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { HeartPulse, Receipt, PiggyBank, Target, Lightbulb, History, CreditCard } from 'lucide-react';
+import { HeartPulse, Receipt, PiggyBank, Target, Lightbulb, History, CreditCard, Sparkles } from 'lucide-react';
 
 interface SubNavLink {
   name: string;
@@ -14,6 +14,7 @@ const SubNav = () => {
   const links: SubNavLink[] = [
     { name: 'Health Engine', path: '/financial-health', icon: <HeartPulse size={16} /> },
     { name: 'Credit Health', path: '/credit-health', icon: <CreditCard size={16} /> },
+    { name: 'AI Assistant', path: '/assistant', icon: <Sparkles size={16} /> },
     { name: 'Expense Engine', path: '/expense-analysis', icon: <Receipt size={16} /> },
     { name: 'Cash Flow', path: '/cash-flow', icon: <PiggyBank size={16} /> },
     { name: 'Budget Assistant', path: '/budgeting', icon: <Target size={16} /> },
