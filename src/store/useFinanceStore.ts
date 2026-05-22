@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { generateWellnessScores } from '../scoring/wellnessScoring';
 import { generateSmartInsights } from '../insights/insightGenerator';
-import { UserProfile, NetWorthEntry, Expense, Budget, Goal } from '../types/finance';
+import { UserProfile, NetWorthEntry, Expense, Budget, Goal, CreditCard, CreditEMI, CreditRepayment } from '../types/finance';
 
 // New Modular Engines
 import { analyzeStabilityAndStress, StabilityMetrics } from '../financial-health/stabilityEngine';
@@ -24,6 +24,21 @@ interface FinanceState {
   expenses: Expense[];
   budget: Budget;
   trackingHistory: NetWorthEntry[];
+  
+  // Credit state variables
+  creditCards: CreditCard[];
+  creditEMIs: CreditEMI[];
+  creditRepayments: CreditRepayment[];
+  
+  // Credit Actions
+  addCreditCard: (card: Omit<CreditCard, 'id' | 'rewardEarned'>) => void;
+  deleteCreditCard: (id: string) => void;
+  updateCreditCard: (id: string, updatedCard: Partial<CreditCard>) => void;
+  addCreditEMI: (emi: Omit<CreditEMI, 'id'>) => void;
+  deleteCreditEMI: (id: string) => void;
+  addCreditRepayment: (repayment: Omit<CreditRepayment, 'id'>) => void;
+  updateCreditRepayment: (id: string, updatedRepayment: Partial<CreditRepayment>) => void;
+
   updateProfile: (newProfile: Partial<FinanceState['profile']>) => void;
   updateInvestments: (newInvestments: Partial<FinanceState['investments']>) => void;
   addGoal: (goal: Omit<Goal, 'id'>) => void;
@@ -52,16 +67,16 @@ const getInitialExpenses = (): Expense[] => {
   const month = String(now.getMonth() + 1).padStart(2, '0');
   
   return [
-    { id: '1', amount: 25000, category: 'rent', date: `${year}-${month}-01`, description: 'Flat Rent Payment' },
-    { id: '2', amount: 3200, category: 'food', date: `${year}-${month}-03`, description: 'Swiggy & Zomato Delivery' },
-    { id: '3', amount: 2400, category: 'utilities', date: `${year}-${month}-05`, description: 'Electricity & Wifi Bill' },
-    { id: '4', amount: 5600, category: 'shopping', date: `${year}-${month}-08`, description: 'Myntra & Amazon Clothes' },
-    { id: '5', amount: 649, category: 'subscriptions', date: `${year}-${month}-10`, description: 'Netflix Premium' },
-    { id: '6', amount: 1800, category: 'travel', date: `${year}-${month}-12`, description: 'Uber & Fuel Expenses' },
-    { id: '7', amount: 1500, category: 'healthcare', date: `${year}-${month}-14`, description: 'Apollo Pharmacy & Consult' },
-    { id: '8', amount: 15000, category: 'EMI/debt', date: `${year}-${month}-01`, description: 'HDFC Car Loan EMI' },
-    { id: '9', amount: 20000, category: 'investments', date: `${year}-${month}-05`, description: 'Mutual Fund SIP Transfer' },
-    { id: '10', amount: 3500, category: 'entertainment', date: `${year}-${month}-15`, description: 'PVR Movie & Dining Out' }
+    { id: '1', amount: 25000, category: 'rent', date: `${year}-${month}-01`, description: 'Flat Rent Payment', paymentMethod: 'bank' },
+    { id: '2', amount: 3200, category: 'food', date: `${year}-${month}-03`, description: 'Swiggy & Zomato Delivery', paymentMethod: 'credit-card', cardId: 'card-2' },
+    { id: '3', amount: 2400, category: 'utilities', date: `${year}-${month}-05`, description: 'Electricity & Wifi Bill', paymentMethod: 'bank' },
+    { id: '4', amount: 5600, category: 'shopping', date: `${year}-${month}-08`, description: 'Myntra & Amazon Clothes', paymentMethod: 'credit-card', cardId: 'card-3' },
+    { id: '5', amount: 649, category: 'subscriptions', date: `${year}-${month}-10`, description: 'Netflix Premium', paymentMethod: 'credit-card', cardId: 'card-1' },
+    { id: '6', amount: 1800, category: 'travel', date: `${year}-${month}-12`, description: 'Uber & Fuel Expenses', paymentMethod: 'credit-card', cardId: 'card-3' },
+    { id: '7', amount: 1500, category: 'healthcare', date: `${year}-${month}-14`, description: 'Apollo Pharmacy & Consult', paymentMethod: 'cash' },
+    { id: '8', amount: 15000, category: 'EMI/debt', date: `${year}-${month}-01`, description: 'HDFC Car Loan EMI', paymentMethod: 'bank' },
+    { id: '9', amount: 20000, category: 'investments', date: `${year}-${month}-05`, description: 'Mutual Fund SIP Transfer', paymentMethod: 'bank' },
+    { id: '10', amount: 3500, category: 'entertainment', date: `${year}-${month}-15`, description: 'PVR Movie & Dining Out', paymentMethod: 'credit-card', cardId: 'card-1' }
   ];
 };
 
@@ -110,7 +125,145 @@ const useFinanceStore = create<FinanceState>()(
         { date: '2026-04-01T00:00:00.000Z', overallScore: 78, netWorth: 830000, emergencyScore: 60, debtScore: 80, savingsScore: 80, investmentScore: 70 }
       ], // Array of monthly snapshots
 
+      creditCards: [
+        {
+          id: 'card-1',
+          name: 'Regalia Gold',
+          bank: 'HDFC Bank',
+          limit: 500000,
+          currentBalance: 42000,
+          dueDate: '20',
+          statementDate: '05',
+          rewardType: 'points',
+          rewardRate: 2.6,
+          rewardEarned: 12400,
+          cardType: 'visa'
+        },
+        {
+          id: 'card-2',
+          name: 'Amazon Pay Card',
+          bank: 'ICICI Bank',
+          limit: 300000,
+          currentBalance: 15000,
+          dueDate: '15',
+          statementDate: '25',
+          rewardType: 'cashback',
+          rewardRate: 2.0,
+          rewardEarned: 8500,
+          cardType: 'visa'
+        },
+        {
+          id: 'card-3',
+          name: 'OneCard',
+          bank: 'SBI Cards',
+          limit: 150000,
+          currentBalance: 35000,
+          dueDate: '02',
+          statementDate: '18',
+          rewardType: 'points',
+          rewardRate: 1.0,
+          rewardEarned: 3200,
+          cardType: 'visa'
+        }
+      ],
+
+      creditEMIs: [
+        {
+          id: 'emi-1',
+          cardId: 'card-1',
+          description: 'MacBook Pro Purchase',
+          monthlyAmount: 8500,
+          remainingMonths: 6,
+          totalAmount: 51000
+        },
+        {
+          id: 'emi-2',
+          cardId: 'card-3',
+          description: 'iPhone 15 Pro Max',
+          monthlyAmount: 6200,
+          remainingMonths: 4,
+          totalAmount: 24800
+        }
+      ],
+
+      creditRepayments: [
+        { id: 'rep-1', cardId: 'card-1', billingMonth: '2026-01', amountDue: 35000, amountPaid: 35000, paidDate: '2026-01-18', status: 'ontime' },
+        { id: 'rep-2', cardId: 'card-2', billingMonth: '2026-01', amountDue: 12000, amountPaid: 12000, paidDate: '2026-01-14', status: 'ontime' },
+        { id: 'rep-3', cardId: 'card-3', billingMonth: '2026-01', amountDue: 25000, amountPaid: 25000, paidDate: '2026-01-01', status: 'ontime' },
+        
+        { id: 'rep-4', cardId: 'card-1', billingMonth: '2026-02', amountDue: 40000, amountPaid: 40000, paidDate: '2026-02-18', status: 'ontime' },
+        { id: 'rep-5', cardId: 'card-2', billingMonth: '2026-02', amountDue: 18000, amountPaid: 18000, paidDate: '2026-02-13', status: 'ontime' },
+        { id: 'rep-6', cardId: 'card-3', billingMonth: '2026-02', amountDue: 28000, amountPaid: 28000, paidDate: '2026-02-02', status: 'ontime' },
+        
+        { id: 'rep-7', cardId: 'card-1', billingMonth: '2026-03', amountDue: 45000, amountPaid: 45000, paidDate: '2026-03-19', status: 'ontime' },
+        { id: 'rep-8', cardId: 'card-2', billingMonth: '2026-03', amountDue: 14000, amountPaid: 14000, paidDate: '2026-03-12', status: 'ontime' },
+        { id: 'rep-9', cardId: 'card-3', billingMonth: '2026-03', amountDue: 32000, amountPaid: 15000, paidDate: '2026-03-02', status: 'partial' },
+        
+        { id: 'rep-10', cardId: 'card-1', billingMonth: '2026-04', amountDue: 30000, amountPaid: 30000, paidDate: '2026-04-18', status: 'ontime' },
+        { id: 'rep-11', cardId: 'card-2', billingMonth: '2026-04', amountDue: 11000, amountPaid: 11000, paidDate: '2026-04-14', status: 'ontime' },
+        { id: 'rep-12', cardId: 'card-3', billingMonth: '2026-04', amountDue: 35000, amountPaid: 35000, paidDate: '2026-04-01', status: 'ontime' }
+      ],
+
       // Actions
+      addCreditCard: (card) => set((state) => ({
+        creditCards: [...state.creditCards, { ...card, id: `card-${Date.now()}`, rewardEarned: 0 }]
+      })),
+
+      deleteCreditCard: (id) => set((state) => ({
+        creditCards: state.creditCards.filter(c => c.id !== id),
+        creditEMIs: state.creditEMIs.filter(e => e.cardId !== id),
+        creditRepayments: state.creditRepayments.filter(r => r.cardId !== id)
+      })),
+
+      updateCreditCard: (id, updatedCard) => set((state) => ({
+        creditCards: state.creditCards.map(c => c.id === id ? { ...c, ...updatedCard } : c)
+      })),
+
+      addCreditEMI: (emi) => set((state) => ({
+        creditEMIs: [...state.creditEMIs, { ...emi, id: `emi-${Date.now()}` }]
+      })),
+
+      deleteCreditEMI: (id) => set((state) => ({
+        creditEMIs: state.creditEMIs.filter(e => e.id !== id)
+      })),
+
+      addCreditRepayment: (repayment) => set((state) => {
+        const id = `rep-${Date.now()}`;
+        const updatedCards = state.creditCards.map(c => {
+          if (c.id === repayment.cardId) {
+            const newBal = Math.max(0, c.currentBalance - repayment.amountPaid);
+            const addedRewards = Math.round(repayment.amountPaid * (c.rewardRate / 100));
+            return {
+              ...c,
+              currentBalance: newBal,
+              rewardEarned: c.rewardEarned + addedRewards
+            };
+          }
+          return c;
+        });
+
+        const card = state.creditCards.find(c => c.id === repayment.cardId);
+        const cardName = card ? card.name : 'Credit Card';
+        const newExpense: Expense = {
+          id: `exp-rep-${Date.now()}`,
+          amount: repayment.amountPaid,
+          category: 'EMI/debt',
+          date: repayment.paidDate || new Date().toISOString().split('T')[0],
+          description: `Repayment: ${cardName} (${repayment.billingMonth})`,
+          paymentMethod: 'bank'
+        };
+
+        return {
+          creditRepayments: [...state.creditRepayments, { ...repayment, id }],
+          creditCards: updatedCards,
+          expenses: [newExpense, ...state.expenses]
+        };
+      }),
+
+      updateCreditRepayment: (id, updatedRepayment) => set((state) => ({
+        creditRepayments: state.creditRepayments.map(r => r.id === id ? { ...r, ...updatedRepayment } : r)
+      })),
+
       updateProfile: (newProfile) => set((state) => ({
         profile: { ...state.profile, ...newProfile }
       })),

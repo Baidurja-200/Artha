@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronRight, Activity, PieChart, Calculator, ShieldAlert, LineChart, TrendingUp } from 'lucide-react';
+import { Menu, X, ChevronRight, Activity, PieChart, Calculator, ShieldAlert, LineChart, TrendingUp, CreditCard } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +17,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <Activity size={18} /> },
+    { name: 'Credit Health', path: '/credit-health', icon: <CreditCard size={18} /> },
     { name: 'Calculators', path: '/calculators', icon: <Calculator size={18} /> },
     { name: 'Tax', path: '/tax-planning', icon: <LineChart size={18} /> },
     { name: 'Portfolio', path: '/portfolio-analysis', icon: <TrendingUp size={18} /> },

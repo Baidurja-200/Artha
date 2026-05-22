@@ -62,6 +62,8 @@ export interface Expense {
   category: 'food' | 'rent' | 'travel' | 'shopping' | 'subscriptions' | 'utilities' | 'healthcare' | 'EMI/debt' | 'investments' | 'entertainment' | string;
   date: string;
   description: string;
+  paymentMethod?: 'cash' | 'bank' | 'credit-card';
+  cardId?: string;
 }
 
 export interface Budget {
@@ -78,3 +80,37 @@ export interface Goal {
   current: number;
   timelineYears: number;
 }
+
+export interface CreditCard {
+  id: string;
+  name: string;
+  bank: string;
+  limit: number;
+  currentBalance: number;
+  dueDate: string; // Day of month or specific date string, we will store e.g. "15" or YYYY-MM-DD
+  statementDate: string; // Day of month or specific date string, we will store e.g. "1" or YYYY-MM-DD
+  rewardType: 'cashback' | 'points' | 'miles';
+  rewardRate: number; // e.g. 1.5%
+  rewardEarned: number;
+  cardType: 'visa' | 'mastercard' | 'rupay' | 'amex';
+}
+
+export interface CreditEMI {
+  id: string;
+  cardId: string;
+  description: string;
+  monthlyAmount: number;
+  remainingMonths: number;
+  totalAmount: number;
+}
+
+export interface CreditRepayment {
+  id: string;
+  cardId: string;
+  billingMonth: string; // "2026-05"
+  amountDue: number;
+  amountPaid: number;
+  paidDate: string;
+  status: 'ontime' | 'late' | 'partial' | 'unpaid';
+}
+

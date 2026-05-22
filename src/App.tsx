@@ -11,6 +11,7 @@ import RiskProfiler from './pages/RiskProfiler';
 import MutualFunds from './pages/MutualFunds';
 import FundDetail from './pages/FundDetail';
 import FinancialHealth from './pages/FinancialHealth';
+import CreditHealth from './pages/CreditHealth';
 import ExpenseEngine from './pages/ExpenseEngine';
 import CashFlowEngine from './pages/CashFlowEngine';
 import Budgeting from './pages/Budgeting';
@@ -43,6 +44,7 @@ function App() {
           <Route path="/mutual-funds" element={<MutualFunds />} />
           <Route path="/mutual-funds/:id" element={<FundDetail />} />
           <Route path="/financial-health" element={<FinancialHealth />} />
+          <Route path="/credit-health" element={<CreditHealth />} />
           <Route path="/expense-analysis" element={<ExpenseEngine />} />
           <Route path="/cash-flow" element={<CashFlowEngine />} />
           <Route path="/budgeting" element={<Budgeting />} />
