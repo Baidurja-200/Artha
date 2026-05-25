@@ -60,12 +60,14 @@ const Navbar = () => {
             <Link to="/profile" className="text-gray-300 hover:text-gold-400 text-sm font-medium transition-colors">
               My Profile
             </Link>
-            <Link 
-              to="/assistant" 
+            <a 
+              href="https://chatgpt.com/g/g-69955fc5ad588191a13c013623cb1fd9-artha" 
+              target="_blank" 
+              rel="noopener noreferrer"
               className="btn-primary py-2 px-5 text-sm flex items-center gap-2"
             >
               Chat with Artha <ChevronRight size={16} />
-            </Link>
+            </a>
           </div>
 
           <button 
@@ -101,13 +103,15 @@ const Navbar = () => {
           >
             My Profile
           </Link>
-          <Link 
-             to="/assistant" 
+          <a 
+             href="https://chatgpt.com/g/g-69955fc5ad588191a13c013623cb1fd9-artha" 
+             target="_blank" 
+             rel="noopener noreferrer"
              className="btn-primary flex justify-center mt-2"
              onClick={() => setIsOpen(false)}
           >
             Chat with Artha
-          </Link>
+          </a>
         </div>
       </div>
     </nav>
