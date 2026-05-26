@@ -80,6 +80,26 @@ const getInitialExpenses = (): Expense[] => {
   ];
 };
 
+// Referential cache structure to avoid redundant calculations on identical state
+const memoCache: Record<string, {
+  deps: any[];
+  val: any;
+}> = {};
+
+const memoize = <T>(key: string, deps: any[], fn: () => T): T => {
+  const cached = memoCache[key];
+  if (
+    cached &&
+    cached.deps.length === deps.length &&
+    cached.deps.every((d, i) => d === deps[i])
+  ) {
+    return cached.val;
+  }
+  const val = fn();
+  memoCache[key] = { deps, val };
+  return val;
+};
+
 const useFinanceStore = create<FinanceState>()(
   persist(
     (set, get) => ({
@@ -309,51 +329,69 @@ const useFinanceStore = create<FinanceState>()(
       // Derived/Computed Logic (The Engine)
       getWellnessMetrics: () => {
         const { profile, investments, goals } = get();
-        return generateWellnessScores(profile, investments, goals);
+        return memoize('wellnessMetrics', [profile, investments, goals], () =>
+          generateWellnessScores(profile, investments, goals)
+        );
       },
 
       getSmartInsights: () => {
+        const { profile, investments, goals } = get();
         const metrics = get().getWellnessMetrics();
-        const { profile, investments } = get();
-        return generateSmartInsights(metrics, profile, investments);
+        return memoize('smartInsights', [profile, investments, goals, metrics], () =>
+          generateSmartInsights(metrics, profile, investments)
+        );
       },
 
       getStabilityMetrics: () => {
         const { profile, investments, expenses } = get();
-        return analyzeStabilityAndStress(profile, investments, expenses);
+        return memoize('stabilityMetrics', [profile, investments, expenses], () =>
+          analyzeStabilityAndStress(profile, investments, expenses)
+        );
       },
 
       getCashFlowForecast: (projectionMonths = 6) => {
         const { profile, investments, expenses } = get();
-        return generateCashFlowForecast(profile, investments, expenses, projectionMonths);
+        return memoize(`cashFlowForecast-${projectionMonths}`, [profile, investments, expenses, projectionMonths], () =>
+          generateCashFlowForecast(profile, investments, expenses, projectionMonths)
+        );
       },
 
       getBehaviorAnalysis: () => {
         const { profile, investments, expenses, trackingHistory, budget } = get();
-        return analyzeFinancialBehavior(profile, investments, expenses, trackingHistory, budget);
+        return memoize('behaviorAnalysis', [profile, investments, expenses, trackingHistory, budget], () =>
+          analyzeFinancialBehavior(profile, investments, expenses, trackingHistory, budget)
+        );
       },
 
       getPersonalizedPriorities: () => {
-        const { profile, investments, goals, expenses, getStabilityMetrics, getBehaviorAnalysis, getCashFlowForecast } = get();
-        const stability = getStabilityMetrics();
-        const behavior = getBehaviorAnalysis();
-        const forecast = getCashFlowForecast();
-        return generatePersonalizedPriorities(profile, investments, goals, expenses, stability, behavior, forecast);
+        const { profile, investments, goals, expenses } = get();
+        const stability = get().getStabilityMetrics();
+        const behavior = get().getBehaviorAnalysis();
+        const forecast = get().getCashFlowForecast();
+        return memoize('personalizedPriorities', [profile, investments, goals, expenses, stability, behavior, forecast], () =>
+          generatePersonalizedPriorities(profile, investments, goals, expenses, stability, behavior, forecast)
+        );
       },
 
       getTransactionObservations: () => {
         const { expenses, profile } = get();
-        return analyzeTransactions(expenses, profile);
+        return memoize('transactionObservations', [expenses, profile], () =>
+          analyzeTransactions(expenses, profile)
+        );
       },
 
       getFinancialMomentum: () => {
         const { profile, investments, trackingHistory } = get();
-        return calculateFinancialMomentum(profile, investments, trackingHistory);
+        return memoize('financialMomentum', [profile, investments, trackingHistory], () =>
+          calculateFinancialMomentum(profile, investments, trackingHistory)
+        );
       },
 
       getExplainableInsights: () => {
         const { profile, investments, goals, expenses } = get();
-        return generateExplainableInsights(profile, investments, goals, expenses);
+        return memoize('explainableInsights', [profile, investments, goals, expenses], () =>
+          generateExplainableInsights(profile, investments, goals, expenses)
+        );
       },
 
       recordMonthlySnapshot: () => {
