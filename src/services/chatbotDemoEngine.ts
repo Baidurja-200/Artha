@@ -10,7 +10,7 @@ export interface ChatbotDemoResponse {
   metrics?: { label: string; value: string; status?: 'success' | 'warning' | 'error' | 'info' }[];
 }
 
-export function generateDemoResponse(query: string): ChatbotDemoResponse {
+export function generateDemoResponse(query: string, mode: 'general' | 'dashboard'): ChatbotDemoResponse {
   const cleanQuery = query.toLowerCase().trim();
   const state = useFinanceStore.getState();
 
@@ -24,6 +24,16 @@ export function generateDemoResponse(query: string): ChatbotDemoResponse {
   const equityPct = totalInvestments > 0 ? (investments.equity / totalInvestments) * 100 : 0;
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const savingsRate = profile.monthlyIncome > 0 ? ((profile.monthlyIncome - totalExpenses) / profile.monthlyIncome) * 100 : 0;
+
+  // Set up custom suggestions based on mode
+  const generalChips = ['What is the Rule of 72?', 'Explain the 50/30/20 budget rule', 'Direct vs Regular plans', 'Section 80C list', 'New vs Old tax slabs'];
+  const dashboardChips = ['Analyze my portfolio', 'Show my budget breakdown', 'Check my credit score', 'Show my active goals', 'Scan for reward leakage'];
+  
+  const activeChips = mode === 'general' ? generalChips : dashboardChips;
+
+  const modeNotice = mode === 'general'
+    ? `\n\n*💡 Note: You are in **General Finance Mode**. Switch to **Local Dashboard Mode** above to query your active in-app budget, investments, and credit cards.*`
+    : `\n\n*💡 Note: You are in **Local Dashboard Mode**. Switch to **General Finance Mode** above to explore standard finance formulas, tax structures, and compound calculation guides.*`;
 
   // --- TOPIC 1: GENERAL PERSONAL FINANCE RULES & FORMULAS ---
   if (cleanQuery.includes('rule of 72') || cleanQuery.includes('double my money')) {
@@ -41,8 +51,8 @@ $$\\text{Years to Double} = \\frac{72}{\\text{Interest Rate}}$$
 - At **15% interest** (aggressive equity mutual fund returns), your money will double in:  
   $72 / 15 = \\mathbf{4.8 \\text{ years}}$.
 
-💡 *Note: This rule assumes interest compounds annually and no additional capital is added.*`,
-      chips: ['What is compound interest?', 'Show my emergency runway', 'Explain 50/30/20 rule', 'Analyze my portfolio']
+💡 *Note: This rule assumes interest compounds annually and no additional capital is added.*` + modeNotice,
+      chips: activeChips
     };
   }
 
@@ -63,8 +73,8 @@ ${
   savingsRate >= 20 
     ? `✅ **Excellent!** Your current savings rate is **${savingsRate.toFixed(0)}%**, exceeding the 20% rule of thumb.` 
     : `💡 **Advisory**: You are saving **${savingsRate.toFixed(0)}%** of your income. Look to prune discretionary expenses (e.g. food apps, subscription creep) to hit the 20% mark.`
-}`,
-      chips: ['Scan my subscriptions', 'Am I spending too much?', 'List recent transactions', 'Analyze my portfolio'],
+}` + modeNotice,
+      chips: activeChips,
       metrics: [
         { label: 'Logged Income', value: `₹${(profile.monthlyIncome / 1000).toFixed(0)}k`, status: 'success' },
         { label: 'Actual Expenses', value: `₹${(totalExpenses / 1000).toFixed(0)}k`, status: 'warning' },
@@ -88,8 +98,8 @@ If you invest **₹10,000/month** at **12% CAGR**:
 - Wealth Gained: ₹75,91,479
 - **Total Portfolio Value**: **₹99,91,479 (almost 1 Crore!)**
 
-*The key takeaway is that the growth in the last 5 years is typically greater than the entire growth in the first 15 years.*`,
-      chips: ['What is the Rule of 72?', 'Analyze my mutual funds', 'Audit my investments', 'Should I increase my SIP?']
+*The key takeaway is that the growth in the last 5 years is typically greater than the entire growth in the first 15 years.*` + modeNotice,
+      chips: activeChips
     };
   }
 
@@ -108,8 +118,8 @@ While a 1% commission difference sounds negligible, over a 20-year investment ho
 - A regular fund with 1% higher expense ratio will eat up **roughly 20% to 25% of your final accumulated corpus**!
 - For a ₹10,000/month SIP, going **Direct** could save you over **₹15 Lakhs** in fees.
 
-✅ *Artha recommendation: Always invest in **Direct Plans** (marked with "Direct" in the scheme name) to maximize long-term compounding.*`,
-      chips: ['Analyze my portfolio', 'What is an ELSS?', 'What is a good SIP return?', 'Audit my investments']
+✅ *Artha recommendation: Always invest in **Direct Plans** (marked with "Direct" in the scheme name) to maximize long-term compounding.*` + modeNotice,
+      chips: activeChips
     };
   }
 
@@ -122,8 +132,8 @@ While a 1% commission difference sounds negligible, over a 20-year investment ho
 - **No Manager Risk**: Eliminates the risk of a fund manager making poor stock picks.
 - **Outperformance**: Studies show ~80% of active large-cap mutual funds fail to beat their benchmark index over a 5-10 year period.
 
-💡 *Artha Tip: For core equity allocations, index funds are the most reliable, tax-efficient, and low-stress entry point for retail investors.*`,
-      chips: ['Direct vs Regular funds', 'Equity vs Debt allocations', 'Calculate my retirement target', 'Analyze my portfolio']
+💡 *Artha Tip: For core equity allocations, index funds are the most reliable, tax-efficient, and low-stress entry point for retail investors.*` + modeNotice,
+      chips: activeChips
     };
   }
 
@@ -151,8 +161,8 @@ ${
   remaining80c > 0 
     ? `⚠️ **Action**: You have **₹${remaining80c.toLocaleString('en-IN')}** in tax-saving opportunities. Consider putting this in ELSS funds or PPF.` 
     : `✅ **Outstanding**: Your 80C is fully maximized!`
-}`,
-      chips: ['New vs Old regime', 'Should I invest in PPF?', 'Audit my investments', 'How is my budget looking?'],
+}` + modeNotice,
+      chips: activeChips,
       metrics: [
         { label: '80C Claimed', value: `₹${(tax80c / 1000).toFixed(0)}k`, status: tax80c >= 150000 ? 'success' : 'warning' },
         { label: 'Unused Limit', value: `₹${(remaining80c / 1000).toFixed(0)}k`, status: remaining80c > 0 ? 'warning' : 'success' }
@@ -181,8 +191,8 @@ India currently has two parallel income tax structures:
 - **New Regime**: Lower tax rates but eliminates almost all exemptions/deductions (except standard deduction of ₹75,000).
 
 ### Diagnostic for Rahul (₹${annualIncome.toLocaleString('en-IN')}/year):
-If your total exemptions (80C + 80D + HRA + Home Loan) exceed **₹3.75 Lakhs**, the **Old Regime** will likely save you more tax. Otherwise, the **New Regime** is simpler and cheaper.`,
-      chips: ['Deductions under 80C', 'Calculate my monthly tax liability', 'Analyze my portfolio', 'How to save tax?']
+If your total exemptions (80C + 80D + HRA + Home Loan) exceed **₹3.75 Lakhs**, the **Old Regime** will likely save you more tax. Otherwise, the **New Regime** is simpler and cheaper.` + modeNotice,
+      chips: activeChips
     };
   }
 
@@ -204,8 +214,8 @@ Your credit score is a 3-digit rating (300 to 900) representing your borrow reli
 - **Current Score**: **${healthReport.creditScore} (${healthReport.creditRating})**
 - **Utilization Rate**: **${utilization.overallUtilization.toFixed(1)}%**
 - **On-time Repayments**: **${repayments.onTimeRate.toFixed(0)}%** over **${repayments.totalBills} billing cycles**.
-- **Active Credit EMIs**: **${creditEMIs.length} active EMIs** (Totaling ₹${creditEMIs.reduce((s, e) => s + e.monthlyAmount, 0).toLocaleString('en-IN')}/month).`,
-      chips: ['Audit my rewards leakage', 'How is my credit stress score?', 'Show my active credit EMIs', 'Audit my spending'],
+- **Active Credit EMIs**: **${creditEMIs.length} active EMIs** (Totaling ₹${creditEMIs.reduce((s, e) => s + e.monthlyAmount, 0).toLocaleString('en-IN')}/month).` + modeNotice,
+      chips: activeChips,
       metrics: [
         { label: 'Score Index', value: `${healthReport.creditScore}`, status: healthReport.creditScore >= 745 ? 'success' : healthReport.creditScore >= 660 ? 'warning' : 'error' },
         { label: 'Util Ratio', value: `${utilization.overallUtilization.toFixed(1)}%`, status: utilization.overallUtilization <= 30 ? 'success' : 'warning' }
@@ -227,8 +237,8 @@ Your credit score is a 3-digit rating (300 to 900) representing your borrow reli
 - **Monthly SIP Commitments**: **₹${investments.totalSIP.toLocaleString('en-IN')}/month**
 
 ### Review:
-Given your age is **${profile.age}**, your asset profile is heavily growth-focused. This allocation fits aggressive wealth compounding timelines of 7+ years. Ensure you keep at least **6 months of emergency expenses** in your liquid debt segment to avoid having to cash out equities during market corrections.`,
-      chips: ['Explain asset allocation', 'Compare equity vs debt funds', 'Show my active goals', 'What is compound interest?'],
+Given your age is **${profile.age}**, your asset profile is heavily growth-focused. This allocation fits aggressive wealth compounding timelines of 7+ years. Ensure you keep at least **6 months of emergency expenses** in your liquid debt segment to avoid having to cash out equities during market corrections.` + modeNotice,
+      chips: activeChips,
       metrics: [
         { label: 'Equity Exposure', value: `${equityPct.toFixed(0)}%`, status: 'info' },
         { label: 'Debt Exposure', value: `${debtPct.toFixed(0)}%`, status: 'info' },
@@ -240,8 +250,8 @@ Given your age is **${profile.age}**, your asset profile is heavily growth-focus
   if (cleanQuery.includes('goals') || cleanQuery.includes('my targets')) {
     if (goals.length === 0) {
       return {
-        text: `You do not have any active financial goals defined in your profile. Setting targets is crucial to guide your asset allocation!`,
-        chips: ['How is my portfolio?', 'Show my budget breakdown', 'Rule of 72']
+        text: `You do not have any active financial goals defined in your profile. Setting targets is crucial to guide your asset allocation!` + modeNotice,
+        chips: activeChips
       };
     }
 
@@ -252,22 +262,50 @@ Given your age is **${profile.age}**, your asset profile is heavily growth-focus
     });
 
     return {
-      text,
-      chips: ['Audit my portfolio', 'Should I increase my SIP?', 'Show my emergency runway']
+      text: text + modeNotice,
+      chips: activeChips
+    };
+  }
+
+  if (cleanQuery.includes('reward') || cleanQuery.includes('leakage')) {
+    return {
+      text: `### Credit Card Reward Optimization Scan
+
+- **Rewards Earned**: **₹${rewardAudit.totalRewardsEarned.toLocaleString('en-IN')}**
+- **Reward Leakage**: **₹${rewardAudit.totalLeakageAmount.toLocaleString('en-IN')}** (unoptimized card choices)
+- **Active Cards**: **${creditCards.length} registered cards**
+
+💡 *Tip: Audit your rewards leakage by using specific category cards (e.g. HDFC Regalia for dining, Amazon Pay for shopping) to avoid points yield drops.*` + modeNotice,
+      chips: activeChips,
+      metrics: [
+        { label: 'Yield Rate', value: `${rewardAudit.overallRewardRate.toFixed(2)}%`, status: 'success' },
+        { label: 'Leakage Amt', value: `₹${rewardAudit.totalLeakageAmount.toFixed(0)}`, status: rewardAudit.totalLeakageAmount > 0 ? 'warning' : 'success' }
+      ]
     };
   }
 
   // --- GENERAL FALLBACK ENGINE ---
-  let text = `I am **Artha AI** (Demo Mode), your personal financial intelligence assistant. I can answer general finance inquiries or help analyze your active dashboard data.\n\n`;
-  text += `**I can assist you with:**\n`;
-  text += `1. **General Financial Rules**: *"What is the Rule of 72?"*, *"How does compound interest work?"*, or *"Explain the 50/30/20 budget rule"*.\n`;
-  text += `2. **Mutual Funds & Investing**: *"Direct vs Regular plans"*, *"What is an index fund?"*, or *"Analyze my portfolio"*.\n`;
-  text += `3. **Tax Planning & Code**: *"Exemptions under 80C"*, *"Explain ELSS funds"*, or *"New vs Old tax slabs"*.\n`;
-  text += `4. **Credit Cards & Scores**: *"Brackets for credit scores"*, *"List active EMIs"*, or *"How is my credit health?"*.\n\n`;
-  text += `Feel free to type any personal finance questions!`;
+  let text = `I am **Artha AI**, your financial intelligence assistant. I am configured in **${mode === 'general' ? 'General Finance AI Mode' : 'Local Dashboard AI Mode'}**. 
+
+`;
+  if (mode === 'general') {
+    text += `Ask me about financial principles, investment concepts, tax regulations, or credit formulas. For example:
+- *"What is the Rule of 72?"*
+- *"Explain Direct vs Regular mutual funds"*
+- *"What is Section 80C?"*
+- *"How does compound interest work?"*`;
+  } else {
+    text += `Ask me to analyze your custom profile records, portfolio segments, and credit history. For example:
+- *"Analyze my portfolio"*
+- *"How is my budget looking?"*
+- *"Check my CIBIL credit score"*
+- *"Show my goal tracking status"*`;
+  }
+  
+  text += modeNotice;
 
   return {
     text,
-    chips: ['What is the Rule of 72?', 'Explain the 50/30/20 budget rule', 'New vs Old tax slabs', 'Analyze my portfolio']
+    chips: activeChips
   };
 }

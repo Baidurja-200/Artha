@@ -11,6 +11,7 @@ interface Message {
 }
 
 const ChatbotDemo = () => {
+  const [mode, setMode] = useState<'general' | 'dashboard'>('general');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'init',
@@ -27,13 +28,23 @@ const ChatbotDemo = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const suggestionChips = [
+  const generalChips = [
     'What is the Rule of 72?',
     'Explain the 50/30/20 budget rule',
     'Direct vs Regular plans',
     'Section 80C list',
-    'Analyze my portfolio'
+    'New vs Old tax slabs'
   ];
+
+  const dashboardChips = [
+    'Analyze my portfolio',
+    'Show my budget breakdown',
+    'Check my credit score',
+    'Show my active goals',
+    'Scan for reward leakage'
+  ];
+
+  const activeChips = mode === 'general' ? generalChips : dashboardChips;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -58,7 +69,7 @@ const ChatbotDemo = () => {
     setIsTyping(true);
 
     setTimeout(() => {
-      const response = generateDemoResponse(text);
+      const response = generateDemoResponse(text, mode);
       const assistantMessage: Message = {
         id: `ai-${Date.now()}`,
         sender: 'assistant',
@@ -69,6 +80,31 @@ const ChatbotDemo = () => {
       setMessages((prev) => [...prev, assistantMessage]);
       setIsTyping(false);
     }, 750);
+  };
+
+  const handleModeChange = (newMode: 'general' | 'dashboard') => {
+    if (newMode === mode) return;
+    setMode(newMode);
+
+    const systemMsg: Message = {
+      id: `system-${Date.now()}`,
+      sender: 'assistant',
+      text: newMode === 'general'
+        ? `🔄 Switched to **General Finance AI Mode**.\n\nAsk me about standard financial rules (Rule of 72, 50/30/20), compounding math, Direct vs Regular mutual funds, or tax slabs.`
+        : `🔄 Switched to **Local Dashboard AI Mode**.\n\nAsk me to review your personal investments, calculate your direct savings rate, or check your credit health score details.`,
+      timestamp: new Date(),
+      metrics: newMode === 'general'
+        ? [
+            { label: 'Feature State', value: 'Isolated Demo', status: 'warning' },
+            { label: 'Scope', value: 'General Finance', status: 'info' }
+          ]
+        : [
+            { label: 'Feature State', value: 'Isolated Demo', status: 'warning' },
+            { label: 'Scope', value: 'Local Dashboard', status: 'success' }
+          ]
+    };
+
+    setMessages((prev) => [...prev, systemMsg]);
   };
 
   const handleReset = () => {
@@ -168,7 +204,7 @@ const ChatbotDemo = () => {
         </div>
 
         {/* Chat Interface Container */}
-        <div className="glass-panel overflow-hidden flex flex-col h-[75vh] border-white/10 shadow-2xl relative">
+        <div className="glass-panel overflow-hidden flex flex-col h-[78vh] border-white/10 shadow-2xl relative">
           
           {/* Header */}
           <div className="px-6 py-4 bg-dark-900/80 border-b border-white/5 flex items-center justify-between z-10">
@@ -178,13 +214,13 @@ const ChatbotDemo = () => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="font-display font-bold text-lg text-white">Artha General AI</h2>
+                  <h2 className="font-display font-bold text-lg text-white">Artha AI Assistant</h2>
                   <span className="px-2 py-0.5 text-[9px] uppercase font-bold tracking-wider rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400">
                     Prototype
                   </span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Ingesting local state dynamically & replying with general finance facts
+                  Select a mode below to customize how Artha AI processes your queries
                 </p>
               </div>
             </div>
@@ -196,6 +232,33 @@ const ChatbotDemo = () => {
             >
               <RotateCcw size={16} />
             </button>
+          </div>
+
+          {/* Interactive Mode Toggle Selector */}
+          <div className="px-6 py-3.5 bg-dark-950/60 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 z-10">
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Select Assistant Focus:</span>
+            <div className="flex bg-dark-900/90 border border-white/10 rounded-xl p-0.5">
+              <button
+                onClick={() => handleModeChange('general')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 flex items-center justify-center gap-1.5 select-none ${
+                  mode === 'general'
+                    ? 'bg-gradient-gold text-dark-900 font-semibold shadow-gold'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <HelpCircle size={14} /> General Finance AI
+              </button>
+              <button
+                onClick={() => handleModeChange('dashboard')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 flex items-center justify-center gap-1.5 select-none ${
+                  mode === 'dashboard'
+                    ? 'bg-gradient-gold text-dark-900 font-semibold shadow-gold'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Bot size={14} /> Local Dashboard AI
+              </button>
+            </div>
           </div>
 
           {/* Chat Feed */}
@@ -265,7 +328,7 @@ const ChatbotDemo = () => {
           {/* Suggestions */}
           <div className="px-6 py-2 bg-dark-950/40 border-t border-white/5">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1.5 whitespace-nowrap">
-              {suggestionChips.map((chip, idx) => (
+              {activeChips.map((chip, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSend(chip)}
@@ -290,7 +353,11 @@ const ChatbotDemo = () => {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask about Rule of 72, direct vs regular funds, tax slabs, or your own portfolio..."
+                placeholder={
+                  mode === 'general'
+                    ? "Ask about Rule of 72, compounding, direct mutual funds, index funds, 80C deductions..."
+                    : "Ask to analyze your investments, check credit score details, or audit savings rate..."
+                }
                 className="input-field pr-12 text-sm py-3.5 bg-dark-950/60"
               />
               <button
