@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, BookOpen, Compass, Calculator, Target, BarChart2 } from 'lucide-react';
+import { Search, Filter, BookOpen, Compass, Calculator, Target, BarChart2, Activity } from 'lucide-react';
 import { useMutualFunds } from '../hooks/useMutualFunds';
 import FundCard from '../components/mutualfunds/FundCard';
 import SIPSimulator from '../components/mutualfunds/SIPSimulator';
@@ -8,6 +8,7 @@ import ELSSModule from '../components/mutualfunds/ELSSModule';
 import FundCompare from '../components/mutualfunds/FundCompare';
 import OverlapAnalyzer from '../components/mutualfunds/OverlapAnalyzer';
 import PortfolioPlanner from '../components/mutualfunds/PortfolioPlanner';
+import FundAnalyzer from '../components/mutualfunds/FundAnalyzer';
 import SEO from '../components/common/SEO';
 
 const CATEGORIES = ['All', 'Index Funds', 'Flexi Cap', 'Large Cap', 'Mid Cap', 'Small Cap', 'ELSS', 'Debt Funds'];
@@ -17,6 +18,7 @@ const TABS = [
   { id: 'sip', label: 'SIP Simulator', icon: <Calculator size={18} /> },
   { id: 'goals', label: 'Goals & Tax', icon: <Target size={18} /> },
   { id: 'analytics', label: 'Analytics Tools', icon: <BarChart2 size={18} /> },
+  { id: 'analyze', label: 'Analyze My Funds', icon: <Activity size={18} /> },
 ];
 
 const MutualFunds = () => {
@@ -259,6 +261,13 @@ const MutualFunds = () => {
             <PortfolioPlanner />
             <FundCompare />
             <OverlapAnalyzer />
+          </section>
+        )}
+
+        {/* 5. ANALYZE MY FUNDS TAB */}
+        {activeTab === 'analyze' && (
+          <section className="animate-fade-in" aria-label="Portfolio fund analysis and ranking">
+            <FundAnalyzer />
           </section>
         )}
 
