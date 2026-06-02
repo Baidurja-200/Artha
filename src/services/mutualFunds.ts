@@ -105,36 +105,36 @@ export const mutualFundService = {
 
 export const POPULAR_FUNDS = {
   indexFunds: [
-    { schemeCode: '120503', schemeName: 'SBI Nifty 50 Index Fund Direct Growth', category: 'Index Funds', risk: 'Very High', expenseRatio: 0.20, aum: '45,000 Cr', manager: 'Ravi Kumar', minSip: 500, type: 'Equity' },
-    { schemeCode: '147703', schemeName: 'UTI Nifty 50 Index Fund Direct Growth', category: 'Index Funds', risk: 'Very High', expenseRatio: 0.21, aum: '12,500 Cr', manager: 'Sharwan Goyal', minSip: 500, type: 'Equity' },
-    { schemeCode: '118989', schemeName: 'HDFC Index Fund Nifty 50 Plan Direct Growth', category: 'Index Funds', risk: 'Very High', expenseRatio: 0.20, aum: '8,000 Cr', manager: 'Krishan Daga', minSip: 100, type: 'Equity' }
+    { schemeCode: '119827', schemeName: 'SBI Nifty 50 Index Fund Direct Growth', category: 'Index Funds', risk: 'Very High', expenseRatio: 0.20, aum: '45,000 Cr', manager: 'Ravi Kumar', minSip: 500, type: 'Equity' },
+    { schemeCode: '120716', schemeName: 'UTI Nifty 50 Index Fund Direct Growth', category: 'Index Funds', risk: 'Very High', expenseRatio: 0.21, aum: '12,500 Cr', manager: 'Sharwan Goyal', minSip: 500, type: 'Equity' },
+    { schemeCode: '119063', schemeName: 'HDFC Index Fund Nifty 50 Plan Direct Growth', category: 'Index Funds', risk: 'Very High', expenseRatio: 0.20, aum: '8,000 Cr', manager: 'Krishan Daga', minSip: 100, type: 'Equity' }
   ],
   flexiCap: [
-    { schemeCode: '119551', schemeName: 'Parag Parikh Flexi Cap Fund Direct Growth', category: 'Flexi Cap', risk: 'High', expenseRatio: 0.75, aum: '60,000 Cr', manager: 'Rajeev Thakkar', minSip: 1000, type: 'Equity' },
-    { schemeCode: '122639', schemeName: 'HDFC Flexi Cap Fund Direct Growth', category: 'Flexi Cap', risk: 'High', expenseRatio: 0.85, aum: '45,000 Cr', manager: 'Roshi Jain', minSip: 500, type: 'Equity' },
-    { schemeCode: '118989', schemeName: 'SBI Flexi Cap Fund Direct Growth', category: 'Flexi Cap', risk: 'High', expenseRatio: 0.80, aum: '18,000 Cr', manager: 'R Srinivasan', minSip: 500, type: 'Equity' }
+    { schemeCode: '122639', schemeName: 'Parag Parikh Flexi Cap Fund Direct Growth', category: 'Flexi Cap', risk: 'High', expenseRatio: 0.75, aum: '60,000 Cr', manager: 'Rajeev Thakkar', minSip: 1000, type: 'Equity' },
+    { schemeCode: '118955', schemeName: 'HDFC Flexi Cap Fund Direct Growth', category: 'Flexi Cap', risk: 'High', expenseRatio: 0.85, aum: '45,000 Cr', manager: 'Roshi Jain', minSip: 500, type: 'Equity' },
+    { schemeCode: '119718', schemeName: 'SBI Flexi Cap Fund Direct Growth', category: 'Flexi Cap', risk: 'High', expenseRatio: 0.80, aum: '18,000 Cr', manager: 'R Srinivasan', minSip: 500, type: 'Equity' }
   ],
   largeCap: [
-    { schemeCode: '120828', schemeName: 'Axis Bluechip Fund Direct Growth', category: 'Large Cap', risk: 'High', expenseRatio: 0.90, aum: '33,000 Cr', manager: 'Shreyash Devalkar', minSip: 500, type: 'Equity' },
-    { schemeCode: '119062', schemeName: 'ICICI Prudential Bluechip Fund Direct Growth', category: 'Large Cap', risk: 'High', expenseRatio: 0.95, aum: '42,000 Cr', manager: 'Anish Tawakley', minSip: 100, type: 'Equity' },
-    { schemeCode: '108272', schemeName: 'Mirae Asset Large Cap Fund Direct Growth', category: 'Large Cap', risk: 'High', expenseRatio: 0.55, aum: '35,000 Cr', manager: 'Gaurav Misra', minSip: 1000, type: 'Equity' }
+    { schemeCode: '120465', schemeName: 'Axis Bluechip Fund Direct Growth', category: 'Large Cap', risk: 'High', expenseRatio: 0.90, aum: '33,000 Cr', manager: 'Shreyash Devalkar', minSip: 500, type: 'Equity' },
+    { schemeCode: '120586', schemeName: 'ICICI Prudential Bluechip Fund Direct Growth', category: 'Large Cap', risk: 'High', expenseRatio: 0.95, aum: '42,000 Cr', manager: 'Anish Tawakley', minSip: 100, type: 'Equity' },
+    { schemeCode: '118825', schemeName: 'Mirae Asset Large Cap Fund Direct Growth', category: 'Large Cap', risk: 'High', expenseRatio: 0.55, aum: '35,000 Cr', manager: 'Gaurav Misra', minSip: 1000, type: 'Equity' }
   ],
   midCap: [
-    { schemeCode: '118989', schemeName: 'Motilal Oswal Midcap Fund Direct Growth', category: 'Mid Cap', risk: 'Very High', expenseRatio: 0.65, aum: '8,000 Cr', manager: 'Niket Shah', minSip: 500, type: 'Equity' },
-    { schemeCode: '120586', schemeName: 'Kotak Emerging Equity Fund Direct Growth', category: 'Mid Cap', risk: 'Very High', expenseRatio: 0.45, aum: '35,000 Cr', manager: 'Pankaj Tibrewal', minSip: 1000, type: 'Equity' }
+    { schemeCode: '127042', schemeName: 'Motilal Oswal Midcap Fund Direct Growth', category: 'Mid Cap', risk: 'Very High', expenseRatio: 0.65, aum: '8,000 Cr', manager: 'Niket Shah', minSip: 500, type: 'Equity' },
+    { schemeCode: '119775', schemeName: 'Kotak Emerging Equity Fund Direct Growth', category: 'Mid Cap', risk: 'Very High', expenseRatio: 0.45, aum: '35,000 Cr', manager: 'Pankaj Tibrewal', minSip: 1000, type: 'Equity' }
   ],
   smallCap: [
-    { schemeCode: '146503', schemeName: 'Nippon India Small Cap Fund Direct Growth', category: 'Small Cap', risk: 'Very High', expenseRatio: 0.69, aum: '45,000 Cr', manager: 'Samir Rachh', minSip: 100, type: 'Equity' },
-    { schemeCode: '120586', schemeName: 'Quant Small Cap Fund Direct Growth', category: 'Small Cap', risk: 'Very High', expenseRatio: 0.77, aum: '15,000 Cr', manager: 'Ankit Pande', minSip: 1000, type: 'Equity' }
+    { schemeCode: '118778', schemeName: 'Nippon India Small Cap Fund Direct Growth', category: 'Small Cap', risk: 'Very High', expenseRatio: 0.69, aum: '45,000 Cr', manager: 'Samir Rachh', minSip: 100, type: 'Equity' },
+    { schemeCode: '120828', schemeName: 'Quant Small Cap Fund Direct Growth', category: 'Small Cap', risk: 'Very High', expenseRatio: 0.77, aum: '15,000 Cr', manager: 'Ankit Pande', minSip: 1000, type: 'Equity' }
   ],
   taxSaving: [
-    { schemeCode: '118272', schemeName: 'Mirae Asset Tax Saver Fund Direct Growth', category: 'ELSS', risk: 'High', expenseRatio: 0.60, aum: '19,000 Cr', manager: 'Neelesh Surana', minSip: 500, type: 'Equity' },
-    { schemeCode: '119062', schemeName: 'Quant Tax Plan Direct Growth', category: 'ELSS', risk: 'High', expenseRatio: 0.77, aum: '6,500 Cr', manager: 'Ankit Pande', minSip: 500, type: 'Equity' }
+    { schemeCode: '135781', schemeName: 'Mirae Asset Tax Saver Fund Direct Growth', category: 'ELSS', risk: 'High', expenseRatio: 0.60, aum: '19,000 Cr', manager: 'Neelesh Surana', minSip: 500, type: 'Equity' },
+    { schemeCode: '120847', schemeName: 'Quant Tax Plan Direct Growth', category: 'ELSS', risk: 'High', expenseRatio: 0.77, aum: '6,500 Cr', manager: 'Ankit Pande', minSip: 500, type: 'Equity' }
   ],
   debtFunds: [
-    { schemeCode: '120586', schemeName: 'SBI Liquid Fund Direct Growth', category: 'Debt Funds', risk: 'Low', expenseRatio: 0.15, aum: '75,000 Cr', manager: 'Anil Bamboli', minSip: 500, type: 'Debt' },
-    { schemeCode: '118989', schemeName: 'HDFC Short Term Debt Fund Direct Growth', category: 'Debt Funds', risk: 'Moderate', expenseRatio: 0.30, aum: '18,000 Cr', manager: 'Anil Bamboli', minSip: 500, type: 'Debt' },
-    { schemeCode: '147703', schemeName: 'ICICI Prudential Corporate Bond Fund', category: 'Debt Funds', risk: 'Moderate', expenseRatio: 0.25, aum: '25,000 Cr', manager: 'Anuj Tagra', minSip: 1000, type: 'Debt' }
+    { schemeCode: '119800', schemeName: 'SBI Liquid Fund Direct Growth', category: 'Debt Funds', risk: 'Low', expenseRatio: 0.15, aum: '75,000 Cr', manager: 'Anil Bamboli', minSip: 500, type: 'Debt' },
+    { schemeCode: '119016', schemeName: 'HDFC Short Term Debt Fund Direct Growth', category: 'Debt Funds', risk: 'Moderate', expenseRatio: 0.30, aum: '18,000 Cr', manager: 'Anil Bamboli', minSip: 500, type: 'Debt' },
+    { schemeCode: '120692', schemeName: 'ICICI Prudential Corporate Bond Fund', category: 'Debt Funds', risk: 'Moderate', expenseRatio: 0.25, aum: '25,000 Cr', manager: 'Anuj Tagra', minSip: 1000, type: 'Debt' }
   ]
 };
 
@@ -149,8 +149,9 @@ export const MOCK_FUND_META = {
 };
 
 export const enrichFundData = (schemeData) => {
-  const meta = MOCK_FUND_META[schemeData.schemeCode];
-  if (meta) return { ...schemeData, ...meta };
+  const code = schemeData.schemeCode || schemeData.scheme_code;
+  const meta = MOCK_FUND_META[code];
+  if (meta) return { ...schemeData, schemeCode: code, ...meta };
   
   // Dynamic fallback for search results
   const name = (schemeData.schemeName || '').toLowerCase();
@@ -168,6 +169,7 @@ export const enrichFundData = (schemeData) => {
 
   return { 
     ...schemeData, 
+    schemeCode: code,
     category, 
     risk, 
     type,

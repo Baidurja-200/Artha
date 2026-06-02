@@ -5,23 +5,8 @@ import { useMutualFunds } from '../../hooks/useMutualFunds';
 import { getFundInsights } from '../../fund-engine/fundInsights';
 
 const FundCard = ({ fund }) => {
-  const { getFundDetails } = useMutualFunds();
-  const [details, setDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch detailed info to show 3Y CAGR and current NAV
-  useEffect(() => {
-    let isMounted = true;
-    const fetchDetails = async () => {
-      const data = await getFundDetails(fund.schemeCode);
-      if (isMounted && data) {
-        setDetails(data);
-      }
-      if (isMounted) setLoading(false);
-    };
-    fetchDetails();
-    return () => { isMounted = false; };
-  }, [fund.schemeCode, getFundDetails]);
+  const { useFundDetails } = useMutualFunds();
+  const { data: details, isLoading: loading } = useFundDetails(fund.schemeCode);
 
   const insights = getFundInsights(fund.schemeCode, fund.schemeName);
 
