@@ -8,7 +8,17 @@ export default defineConfig({
   base: '/Artha/',
   server: {
     port: 3000,
-    open: true
+    open: true,
+    proxy: {
+      '/api/yahoo': {
+        target: 'https://query1.finance.yahoo.com',
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/api\/yahoo/, ''),
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+        },
+      },
+    },
   },
   build: {
     chunkSizeWarningLimit: 1000,

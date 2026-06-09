@@ -6,6 +6,26 @@ export interface Holding {
   avgPrice: number;
 }
 
+export interface StockPriceData {
+  symbol: string;
+  currentPrice: number;
+  change: number;
+  changePercent: number;
+  dayHigh: number;
+  dayLow: number;
+  name: string;
+}
+
+export interface HoldingWithLiveData extends Holding {
+  currentPrice?: number;
+  currentValue?: number;
+  investedValue: number;
+  pnl?: number;
+  pnlPercent?: number;
+  dayChange?: number;
+  dayChangePercent?: number;
+}
+
 export interface SIPPlan {
   monthlyInvestment: number;
   expectedReturnRate: number;
