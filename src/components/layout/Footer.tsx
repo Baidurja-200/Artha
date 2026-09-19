@@ -23,7 +23,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-gray-400">
               <li><Link to="/calculators" className="hover:text-gold-400 transition-colors">SIP Calculator</Link></li>
               <li><Link to="/calculators" className="hover:text-gold-400 transition-colors">EMI Calculator</Link></li>
-              <li><Link to="/tax" className="hover:text-gold-400 transition-colors">Tax Calculator (New vs Old)</Link></li>
+              <li><Link to="/tax-planning" className="hover:text-gold-400 transition-colors">Tax Calculator (New vs Old)</Link></li>
               <li><Link to="/calculators" className="hover:text-gold-400 transition-colors">Retirement Planner</Link></li>
             </ul>
           </div>
@@ -32,7 +32,7 @@ const Footer = () => {
             <h4 className="text-white font-semibold mb-4">Platform</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li><Link to="/dashboard" className="hover:text-gold-400 transition-colors">Dashboard</Link></li>
-              <li><Link to="/portfolio" className="hover:text-gold-400 transition-colors">Portfolio Analyzer</Link></li>
+              <li><Link to="/portfolio-analysis" className="hover:text-gold-400 transition-colors">Portfolio Analyzer</Link></li>
               <li><Link to="/risk" className="hover:text-gold-400 transition-colors">Risk Profiler</Link></li>
               <li><Link to="/profile" className="hover:text-gold-400 transition-colors">Financial Wellness</Link></li>
             </ul>

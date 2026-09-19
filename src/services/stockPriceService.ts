@@ -1,3 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
+import { StockPriceData } from '../types/finance';
+
 /**
  * Real-Time Stock Price Service for Indian Equities (NSE & BSE)
  * 
@@ -365,3 +368,60 @@ function getKnownBaselinePrice(symbol: string): number {
   };
   return baselines[symbol] || 500.00;
 }
+
+/**
+ * Fetches live stock price data for a single symbol formatted as StockPriceData
+ */
+export async function fetchStockPrice(symbol: string): Promise<StockPriceData> {
+  const quote = await getStockQuote(symbol);
+  return {
+    symbol: quote.symbol,
+    currentPrice: quote.currentPrice,
+    change: quote.dayChange,
+    changePercent: quote.dayChangePercent,
+    dayHigh: quote.high52w || quote.currentPrice,
+    dayLow: quote.low52w || quote.currentPrice,
+    name: quote.symbol,
+  };
+}
+
+/**
+ * Fetches live prices for multiple symbols in parallel.
+ */
+export async function fetchMultipleStockPrices(
+  symbols: string[]
+): Promise<Record<string, StockPriceData>> {
+  const quotes = await getBatchStockQuotes(symbols);
+  const priceMap: Record<string, StockPriceData> = {};
+
+  for (const [sym, quote] of Object.entries(quotes)) {
+    priceMap[sym.toUpperCase()] = {
+      symbol: quote.symbol,
+      currentPrice: quote.currentPrice,
+      change: quote.dayChange,
+      changePercent: quote.dayChangePercent,
+      dayHigh: quote.high52w || quote.currentPrice,
+      dayLow: quote.low52w || quote.currentPrice,
+      name: quote.symbol,
+    };
+  }
+
+  return priceMap;
+}
+
+/**
+ * React Query hook that fetches and caches live stock prices.
+ * Auto-refetches every 2 minutes. Only runs when symbols array is non-empty.
+ */
+export function useStockPrices(symbols: string[]) {
+  return useQuery({
+    queryKey: ['stockPrices', ...symbols.sort()],
+    queryFn: () => fetchMultipleStockPrices(symbols),
+    enabled: symbols.length > 0,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    refetchInterval: 1000 * 60 * 2, // Auto refetch every 2 min
+    retry: 2,
+    refetchOnWindowFocus: true,
+  });
+}
+

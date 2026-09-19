@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid 
@@ -7,9 +7,9 @@ import {
   Upload, Plus, Trash2, AlertTriangle, ShieldCheck, Lightbulb, 
   RefreshCw, Key, Sparkles, TrendingUp, TrendingDown, Send, 
   ChevronRight, ArrowUpRight, ArrowDownRight, CheckCircle2, 
-  SlidersHorizontal, MessageSquare, Info
+  SlidersHorizontal, MessageSquare, Info, BookOpen
 } from 'lucide-react';
-import { Holding } from '../types/finance';
+import { Holding, HoldingWithLiveData } from '../types/finance';
 import { 
   getStockQuote, getBatchStockQuotes, getApiSettings, 
   sanitizeSymbol, StockQuote 
@@ -19,6 +19,8 @@ import {
   AiAnalysisResult, ChatMessage, PortfolioContext 
 } from '../services/geminiService';
 import { ApiKeyModal } from '../components/portfolio/ApiKeyModal';
+import LiveAnalysisCard from '../components/portfolio/LiveAnalysisCard';
+import SEO from '../components/common/SEO';
 
 const COLORS = ['#D4AF37', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
@@ -321,8 +323,33 @@ const Portfolio: React.FC = () => {
 
   const settings = getApiSettings();
 
+  const enrichedHoldings: HoldingWithLiveData[] = useMemo(() => {
+    return portfolio.map((stock) => {
+      const investedValue = stock.quantity * stock.avgPrice;
+      const currentPrice = stock.currentPrice || stock.avgPrice;
+      const currentValue = stock.quantity * currentPrice;
+      const pnl = currentValue - investedValue;
+      const pnlPercent = investedValue > 0 ? (pnl / investedValue) * 100 : 0;
+      return {
+        ...stock,
+        investedValue,
+        currentPrice,
+        currentValue,
+        pnl,
+        pnlPercent,
+        dayChange: stock.dayChange,
+        dayChangePercent: stock.dayChangePercent,
+      };
+    });
+  }, [portfolio]);
+
   return (
-    <div className="container mx-auto px-4 lg:px-6 max-w-7xl py-8 space-y-8">
+    <main className="container mx-auto px-4 lg:px-6 max-w-7xl py-8 space-y-8" role="main">
+      <SEO
+        title="Portfolio Analysis"
+        description="Analyze your Indian stock portfolio with live market prices, real-time P&L tracking, and AI-powered recommendations."
+        keywords="portfolio analyser India, live stock prices, stock P&L tracker, equity valuation, portfolio recommendations"
+      />
       
       {/* Top Header & Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
@@ -829,6 +856,44 @@ const Portfolio: React.FC = () => {
 
       </div>
 
+      {/* Live Analysis & Recommendations */}
+      {portfolio.length > 0 && (
+        <section aria-label="Live AI portfolio analysis and recommendations">
+          <LiveAnalysisCard
+            holdings={enrichedHoldings}
+            totalCurrentValue={totalCurrentValue}
+            totalInvestedValue={totalInvested}
+          />
+        </section>
+      )}
+
+      {/* Educational Guide Section */}
+      <section className="pt-10 border-t border-white/5 space-y-6" aria-label="Portfolio Diversification Principles Guide">
+        <h2 className="heading-3 flex items-center gap-2">
+          <BookOpen className="text-gold-400" /> Capital Allocation & Sector Diversification Guidelines
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+            <h3 className="text-sm font-bold text-white">1. Core Philosophy of Diversification</h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Diversification is the only "free lunch" in investing. Spreading equity holdings across non-correlated sectors (like Financials, IT, Pharma, and FMCG) ensures that a standard regulatory or demand downturn in one sector is offset by defensive gains in other sectors.
+            </p>
+          </article>
+          <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+            <h3 className="text-sm font-bold text-white">2. Sector Concentration Dangers</h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Operating with a <strong>sector allocation over 40%</strong> constitutes high concentration risk. Sectors like Financials or Energy are cyclical. A severe credit tightening cycle or crude oil commodity swing will wipe out massive portfolio values if your allocation lacks defensive FMCG or IT anchors.
+            </p>
+          </article>
+          <article className="bg-dark-900/40 border border-white/5 rounded-2xl p-5 space-y-3">
+            <h3 className="text-sm font-bold text-white">3. Single Stock Company-Specific Volatility</h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Holding <strong>more than 20% of your net portfolio in a single company</strong> (e.g. HDFC Bank, Reliance) exposes you to critical company-specific risk (corporate governance failures, top leadership changes). Keeping single equity allocations below 10% is standard prudent risk practice.
+            </p>
+          </article>
+        </div>
+      </section>
+
       {/* Interactive AI Chat Drawer / Modal */}
       {isChatOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/80 backdrop-blur-md">
@@ -941,7 +1006,7 @@ const Portfolio: React.FC = () => {
         onSaved={() => refreshLivePrices(true)}
       />
 
-    </div>
+    </main>
   );
 };
 
