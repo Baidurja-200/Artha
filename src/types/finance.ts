@@ -4,6 +4,16 @@ export interface Holding {
   sector: string;
   quantity: number;
   avgPrice: number;
+  currentPrice?: number;
+  bsePrice?: number;
+  nsePrice?: number;
+  dayChange?: number;
+  dayChangePercent?: number;
+  previousClose?: number;
+  exchange?: 'NSE' | 'BSE' | 'BOTH';
+  high52w?: number;
+  low52w?: number;
+  lastUpdated?: string;
 }
 
 export interface SIPPlan {

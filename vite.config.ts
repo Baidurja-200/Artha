@@ -8,12 +8,18 @@ export default defineConfig({
   base: '/Artha/',
   server: {
     port: 3000,
-    open: true
+    open: true,
+    proxy: {
+      '/api/stock-feed': {
+        target: 'https://query1.finance.yahoo.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/stock-feed/, ''),
+      },
+    },
   },
   test: {
     globals: true,
-    environment: 'jsdom',
-    // setupFiles: './src/test/setup.ts',
+    environment: 'node',
     css: true,
   },
 })
