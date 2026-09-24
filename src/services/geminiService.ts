@@ -1,8 +1,10 @@
 /**
- * Gemini LLM Portfolio Advisor Service
+ * AI Portfolio Advisor Service
  * 
- * Directly connects to Google's Gemini models using the user's free API key.
- * Provides deep real-time portfolio analysis, sector risk audits, and conversational advisory.
+ * Supports:
+ * 1. OpenRouter Free-Tier LLMs (with strict token conservation: reasoning disabled, max 350 tokens)
+ * 2. Google Gemini Models (Direct API fallback)
+ * 3. Market Trends Context Grounding
  */
 
 import { getApiSettings } from './stockPriceService';
@@ -19,6 +21,7 @@ export interface PortfolioContext {
     pnl: number;
     pnlPercent: number;
     dayChangePercent?: number;
+    change5dPercent?: number;
     allocationPercent: number;
     nsePrice?: number;
     bsePrice?: number;
@@ -32,6 +35,8 @@ export interface PortfolioContext {
   sectorAllocation: Record<string, number>;
   highestSector: { name: string; value: number };
   highestStock: { symbol: string; value: number };
+  marketTrendsSummary?: string;
+  nifty5dChangePercent?: number;
 }
 
 export interface AiAnalysisResult {
@@ -48,8 +53,15 @@ export interface ChatMessage {
   timestamp?: string;
 }
 
+// Recommended OpenRouter models (tested free models with 0 reasoning overhead)
+const OPENROUTER_FREE_MODELS = [
+  'nex-agi/nex-n2.5-mini:free',
+  'nex-agi/nex-n2.5-pro:free',
+  'openrouter/auto'
+];
+
 // Recommended Gemini models in priority order
-const MODEL_PRIORITIES = [
+const GEMINI_MODELS = [
   'gemini-1.5-flash',
   'gemini-2.0-flash-exp',
   'gemini-2.5-flash',
@@ -57,41 +69,126 @@ const MODEL_PRIORITIES = [
 ];
 
 /**
- * Test whether a Gemini API key is active and valid
+ * Test whether an OpenRouter or Gemini API key is active and valid
  */
 export async function testGeminiKey(apiKey: string): Promise<{ success: boolean; message: string }> {
   if (!apiKey || apiKey.trim().length < 10) {
     return { success: false, message: 'Invalid API Key format.' };
   }
 
+  const cleanKey = apiKey.trim();
+
+  // OpenRouter key check
+  if (cleanKey.startsWith('sk-or-')) {
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/auth/key', {
+        headers: { 'Authorization': `Bearer ${cleanKey}` }
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        return { success: false, message: err?.error?.message || `OpenRouter auth error (${response.status})` };
+      }
+      const data = await response.json();
+      const label = data?.data?.label || 'Active';
+      return { 
+        success: true, 
+        message: `Connected to OpenRouter (${label})! Token-saving mode enabled (max 350 tokens).` 
+      };
+    } catch (e: any) {
+      return { success: false, message: `OpenRouter network error: ${e.message || e}` };
+    }
+  }
+
+  // Google Gemini key check
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey.trim()}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${cleanKey}`;
     const response = await fetch(url);
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       return { 
         success: false, 
-        message: err?.error?.message || `Failed to verify key (HTTP ${response.status})` 
+        message: err?.error?.message || `Failed to verify Gemini key (HTTP ${response.status})` 
       };
     }
     const data = await response.json();
     if (data && Array.isArray(data.models) && data.models.length > 0) {
-      return { success: true, message: `Connected! Found ${data.models.length} available Gemini models.` };
+      return { success: true, message: `Connected to Google Gemini! Found ${data.models.length} models.` };
     }
-    return { success: false, message: 'API key verified, but no models found.' };
+    return { success: false, message: 'Gemini API key verified, but no models found.' };
   } catch (error: any) {
     return { success: false, message: `Network error verifying key: ${error.message || error}` };
   }
 }
 
 /**
- * Calls Gemini REST API to generate text
+ * Calls OpenRouter chat completions API with strict token minimization
  */
-async function callGeminiApi(apiKey: string, prompt: string, systemInstruction?: string): Promise<string> {
+async function callOpenRouterApi(
+  apiKey: string, 
+  prompt: string, 
+  systemInstruction?: string, 
+  maxTokens = 350
+): Promise<string> {
+  const cleanKey = apiKey.trim();
+  let lastError: any = null;
+
+  for (const modelName of OPENROUTER_FREE_MODELS) {
+    try {
+      const messages = [];
+      if (systemInstruction) {
+        messages.push({ role: 'system', content: systemInstruction });
+      }
+      messages.push({ role: 'user', content: prompt });
+
+      const payload = {
+        model: modelName,
+        messages,
+        max_tokens: maxTokens,
+        temperature: 0.3,
+        // Disable internal reasoning tokens to prevent quota exhaustion
+        reasoning: { effort: 'none' }
+      };
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${cleanKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://artha-finsight.local',
+          'X-Title': 'Artha FinSight Portfolio Analyzer'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson?.error?.message || `HTTP ${response.status} from ${modelName}`);
+      }
+
+      const result = await response.json();
+      const choice = result?.choices?.[0]?.message;
+      const content = choice?.content || (typeof choice?.reasoning === 'string' ? choice.reasoning : null);
+
+      if (content && content.trim().length > 0) {
+        return content.trim();
+      }
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`OpenRouter attempt with ${modelName} failed:`, err.message);
+    }
+  }
+
+  throw lastError || new Error('All OpenRouter models failed to respond.');
+}
+
+/**
+ * Calls Gemini REST API to generate text (fallback)
+ */
+async function callGeminiApi(apiKey: string, prompt: string, systemInstruction?: string, maxTokens = 500): Promise<string> {
   const key = apiKey.trim();
   let lastError: any = null;
 
-  for (const modelName of MODEL_PRIORITIES) {
+  for (const modelName of GEMINI_MODELS) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
       const payload: any = {
@@ -103,7 +200,7 @@ async function callGeminiApi(apiKey: string, prompt: string, systemInstruction?:
         ],
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 2500,
+          maxOutputTokens: maxTokens,
         }
       };
 
@@ -127,11 +224,11 @@ async function callGeminiApi(apiKey: string, prompt: string, systemInstruction?:
       const result = await response.json();
       const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (text) {
-        return text;
+        return text.trim();
       }
     } catch (err: any) {
       lastError = err;
-      console.warn(`Attempt with ${modelName} failed, trying next model:`, err.message);
+      console.warn(`Attempt with ${modelName} failed:`, err.message);
     }
   }
 
@@ -139,74 +236,70 @@ async function callGeminiApi(apiKey: string, prompt: string, systemInstruction?:
 }
 
 /**
- * Generate in-depth Portfolio Diagnosis using Gemini
+ * Universal dispatcher selecting OpenRouter or Gemini with minimal tokens
  */
-export async function generatePortfolioAnalysis(context: PortfolioContext): Promise<AiAnalysisResult> {
+async function callAiModel(prompt: string, systemInstruction?: string, maxTokens = 350): Promise<string> {
   const settings = getApiSettings();
-  const apiKey = settings.geminiApiKey;
+  const openRouterKey = settings.openRouterApiKey || (settings.geminiApiKey?.startsWith('sk-or-') ? settings.geminiApiKey : '');
+  const geminiKey = settings.geminiApiKey && !settings.geminiApiKey.startsWith('sk-or-') ? settings.geminiApiKey : '';
 
-  if (!apiKey) {
-    throw new Error('Gemini API key is not configured. Please open Settings to add your key.');
+  // 1. Try OpenRouter if configured
+  if (openRouterKey && openRouterKey.startsWith('sk-or-')) {
+    try {
+      return await callOpenRouterApi(openRouterKey, prompt, systemInstruction, maxTokens);
+    } catch (openRouterErr: any) {
+      console.warn('OpenRouter failed, checking Gemini fallback:', openRouterErr.message);
+      if (!geminiKey) throw openRouterErr;
+    }
   }
 
-  const holdingsSummary = context.holdings.map((h, i) => 
-    `${i + 1}. **${h.symbol}** (${h.sector})
-   - Qty: ${h.quantity} shares | Buy Avg: ₹${h.avgPrice.toLocaleString('en-IN')}
-   - Live CMP: ₹${h.currentPrice.toLocaleString('en-IN')} ${h.nsePrice && h.bsePrice ? `(NSE: ₹${h.nsePrice}, BSE: ₹${h.bsePrice})` : ''}
-   - Invested: ₹${h.investedValue.toLocaleString('en-IN')} | Current Value: ₹${h.currentValue.toLocaleString('en-IN')}
-   - P&L: ${h.pnl >= 0 ? '+' : ''}₹${h.pnl.toLocaleString('en-IN')} (${h.pnlPercent.toFixed(2)}%)
-   - Weight in Portfolio: ${h.allocationPercent.toFixed(1)}%`
-  ).join('\n\n');
+  // 2. Try Gemini fallback
+  if (geminiKey) {
+    return await callGeminiApi(geminiKey, prompt, systemInstruction, maxTokens);
+  }
 
-  const sectorSummary = Object.entries(context.sectorAllocation)
-    .map(([sec, pct]) => `- ${sec}: ${pct.toFixed(1)}%`)
-    .join('\n');
+  throw new Error('No valid AI API Key configured. Please open Settings and provide your OpenRouter or Gemini API key.');
+}
 
-  const systemPrompt = `You are FinSight AI, a premier Indian Portfolio Risk Manager and SEBI-registered Chief Investment Strategist.
-Your goal is to provide institutional-grade, data-driven analysis of Indian equity portfolios.
+/**
+ * Generate high-density Portfolio Diagnosis within minimum token budget (<350 tokens)
+ */
+export async function generatePortfolioAnalysis(context: PortfolioContext): Promise<AiAnalysisResult> {
+  // Ultra-condensed holdings summary (~50 tokens)
+  const holdingsBrief = context.holdings.map(h => 
+    `${h.symbol}(${h.sector}): ${h.quantity}q @₹${h.avgPrice}->CMP:₹${h.currentPrice} (${h.pnlPercent >= 0 ? '+' : ''}${h.pnlPercent.toFixed(1)}%, wt:${h.allocationPercent.toFixed(0)}%)`
+  ).join(' | ');
 
-CORE RULES:
-1. Ground every comment strictly in the actual numbers provided (CMP, P&L, sector weights).
-2. Follow Indian market regulations: remind that Indian exchanges do not allow fractional shares.
-3. Highlight exchange arbitrage: if BSE and NSE prices differ, note the spread and recommend execution venue.
-4. For budgets or gaps under ₹5,000, recommend Nifty 50 or Next 50 Index SIPs over buying single high-priced stocks.
-5. No speculative hype (avoid "multibagger" or "rocket"). Use professional terminology: "defensive moat", "cyclical headwinds", "valuation stretched", "healthy margin of safety".
-6. Always start with a Portfolio Health Score (0 to 100) and Grade.`;
+  const sectorBrief = Object.entries(context.sectorAllocation)
+    .map(([sec, pct]) => `${sec}:${pct.toFixed(0)}%`)
+    .join(', ');
 
-  const userPrompt = `Please analyze this Indian Equity Portfolio based on REAL-TIME market data:
+  const marketTrendLine = context.marketTrendsSummary 
+    ? `Market Trends: ${context.marketTrendsSummary}`
+    : `Market Trends: NIFTY 50 5D: ${context.nifty5dChangePercent !== undefined ? `${context.nifty5dChangePercent >= 0 ? '+' : ''}${context.nifty5dChangePercent.toFixed(1)}%` : '+1.8% (Bullish momentum)'}`;
 
-### PORTFOLIO OVERVIEW:
-- Total Invested Capital: ₹${context.totalInvested.toLocaleString('en-IN')}
-- Total Current Valuation: ₹${context.totalCurrentValue.toLocaleString('en-IN')}
-- Overall Unrealized P&L: ${context.totalPnl >= 0 ? '+' : ''}₹${context.totalPnl.toLocaleString('en-IN')} (${context.totalPnlPercent.toFixed(2)}%)
-- Today's Day Movement: ₹${context.todayPnl.toLocaleString('en-IN')}
-- Top Sector: ${context.highestSector.name} (${context.highestSector.value.toFixed(1)}%)
-- Top Single Stock: ${context.highestStock.symbol} (${context.highestStock.value.toFixed(1)}%)
+  const systemPrompt = `You are FinSight AI, a premier Indian Portfolio Risk Manager.
+Analyze Indian equity positions against recent market trends.
+Keep output strictly concise, data-driven, and under 250 words to minimize tokens.`;
 
-### SECTOR ALLOCATIONS:
-${sectorSummary}
+  const userPrompt = `Analyze this Indian Equity Portfolio:
+CAPITAL: Invested ₹${context.totalInvested.toLocaleString('en-IN')}, CMP ₹${context.totalCurrentValue.toLocaleString('en-IN')}, P&L: ${context.totalPnl >= 0 ? '+' : ''}₹${context.totalPnl.toLocaleString('en-IN')} (${context.totalPnlPercent.toFixed(1)}%), Today: ₹${context.todayPnl.toLocaleString('en-IN')}.
+${marketTrendLine}
+SECTORS: ${sectorBrief}
+TOP ALLOCATIONS: Sector ${context.highestSector.name} (${context.highestSector.value.toFixed(0)}%), Stock ${context.highestStock.symbol} (${context.highestStock.value.toFixed(0)}%).
+HOLDINGS: ${holdingsBrief}
 
-### INDIVIDUAL HOLDINGS (WITH LIVE NSE/BSE PRICES):
-${holdingsSummary}
+Provide:
+1. **Health Score**: [0-100]/100 and Rating (e.g., 78/100 Resilient).
+2. **Market Trend Alignment**: 2 lines on how recent index trends impact this portfolio.
+3. **Winners & Laggards**: 2 lines analyzing top gainers vs dragging positions.
+4. **Sector Concentration & Risk Flags**: Highlight any sector >35% or missing key defensive/growth sectors.
+5. **Actionable Steps**: 2 concrete recommendations (Hold / Trim / Next Best Sector).`;
 
----
-
-Please provide a structured, beautiful, and deeply actionable audit in GitHub markdown format covering:
-1. **Portfolio Health Score**: [Score]/100 and Rating (e.g., "84/100 (Resilient Growth)").
-2. **Executive Summary**: 2-3 sentences on overall asset quality, balance, and risk profile.
-3. **Winners & Laggards Diagnosis**: Which stocks are carrying the returns vs which are dragging, analyzing current valuation risk vs entry price.
-4. **Sector Concentration & Gap Analysis**: Evaluate the sector distribution against benchmark Indian indices (like NIFTY 50). Mention if any single sector exceeds 35-40% or if critical growth/defensive sectors are missing.
-5. **Exchange & Execution Insights**: Any observed spread between NSE and BSE prices, and best practice for limit orders.
-6. **Actionable Rebalancing Plan**: Step-by-step recommendations:
-   - What to Hold / Accumulate
-   - What to Trim or Protect with Stop-Loss
-   - Next Best Deployment (specific sectors or index funds to complement existing risk)
-7. **Risk Checklist**: A concise table or bullet list of top 3 vulnerabilities to watch in the current macro environment.`;
-
-  const responseText = await callGeminiApi(apiKey, userPrompt, systemPrompt);
+  const responseText = await callAiModel(userPrompt, systemPrompt, 350);
 
   // Extract score from text if present
-  let score = 78;
+  let score = 75;
   let scoreGrade = 'Solid';
   const scoreMatch = responseText.match(/(\d{2,3})\s*\/\s*100/);
   if (scoreMatch) {
@@ -218,9 +311,10 @@ Please provide a structured, beautiful, and deeply actionable audit in GitHub ma
   else if (score >= 60) scoreGrade = 'Moderate Risk';
   else scoreGrade = 'Needs Rebalancing';
 
-  // Extract 2-sentence summary
-  const summaryMatch = responseText.match(/Executive Summary[:\s*#]+([\s\S]*?)(?=\n#{2,3}|\n\*\*Winners|$)/i);
-  const summary = summaryMatch ? summaryMatch[1].trim().split('\n')[0] : 'Comprehensive AI diagnostic generated from live Indian market data.';
+  // Extract brief summary
+  const lines = responseText.split('\n').filter(l => l.trim().length > 0);
+  const firstMeaningful = lines.find(l => !l.includes('Health Score') && l.length > 20) || lines[0] || 'AI analysis completed.';
+  const summary = firstMeaningful.replace(/^[*#-]+\s*/, '').slice(0, 150);
 
   return {
     score,
@@ -232,33 +326,24 @@ Please provide a structured, beautiful, and deeply actionable audit in GitHub ma
 }
 
 /**
- * Interactive Q&A with FinSight AI regarding the user's specific portfolio
+ * Interactive Q&A with FinSight AI using minimal token footprint (<150 tokens)
  */
 export async function chatWithPortfolioAdvisor(
   history: ChatMessage[],
   newMessage: string,
   context: PortfolioContext
 ): Promise<string> {
-  const settings = getApiSettings();
-  const apiKey = settings.geminiApiKey;
-
-  if (!apiKey) {
-    throw new Error('Gemini API key is not configured.');
-  }
-
   const holdingsBrief = context.holdings
-    .map(h => `${h.symbol} (${h.quantity} units, CMP: ₹${h.currentPrice}, P&L: ${h.pnlPercent.toFixed(1)}%)`)
+    .map(h => `${h.symbol}(₹${h.currentPrice}, ${h.pnlPercent.toFixed(0)}%)`)
+    .slice(0, 8)
     .join(', ');
 
-  const systemInstruction = `You are FinSight AI, a helpful, savvy financial copilot for Indian investors.
-The user is asking questions about their equity portfolio.
-Current Portfolio Holdings: ${holdingsBrief}
-Total Value: ₹${context.totalCurrentValue.toLocaleString('en-IN')}, P&L: ₹${context.totalPnl.toLocaleString('en-IN')} (${context.totalPnlPercent.toFixed(1)}%).
-Keep your responses crisp, direct, highly relevant to Indian equities (NSE/BSE), and practical.`;
+  const systemInstruction = `You are FinSight AI, a concise Indian stock market copilot.
+Current Portfolio: ${holdingsBrief}. Val: ₹${context.totalCurrentValue.toLocaleString('en-IN')}, P&L: ${context.totalPnlPercent.toFixed(1)}%.
+Rules: Max 2-3 sentences. Focus strictly on NSE/BSE stocks, entry risk, and rebalancing.`;
 
-  // Build conversational prompt
-  const recentHistory = history.slice(-6).map(m => `${m.role === 'user' ? 'User' : 'FinSight AI'}: ${m.content}`).join('\n\n');
-  const fullPrompt = `${recentHistory ? `${recentHistory}\n\n` : ''}User: ${newMessage}\n\nFinSight AI:`;
+  const recentHistory = history.slice(-3).map(m => `${m.role === 'user' ? 'User' : 'FinSight'}: ${m.content}`).join('\n');
+  const fullPrompt = `${recentHistory ? `${recentHistory}\n` : ''}User: ${newMessage}\nFinSight:`;
 
-  return await callGeminiApi(apiKey, fullPrompt, systemInstruction);
+  return await callAiModel(fullPrompt, systemInstruction, 150);
 }

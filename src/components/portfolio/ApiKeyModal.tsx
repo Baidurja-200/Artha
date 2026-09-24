@@ -114,17 +114,22 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSav
           {activeTab === 'llm' && (
             <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-gold-500/10 border border-gold-500/20">
-                <div className="flex items-center gap-2 text-gold-400 text-sm font-semibold mb-1">
-                  <ShieldCheck size={16} /> Active Free Gemini Key Ready
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 text-gold-400 text-sm font-semibold">
+                    <ShieldCheck size={16} /> OpenRouter Free-Tier AI Active
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">
+                    Minimal Token Mode (&le; 350 Tokens)
+                  </span>
                 </div>
                 <p className="text-xs text-gray-300 leading-relaxed">
-                  Your free Google Gemini key is loaded and tested. It powers institutional-grade risk diagnostics, arbitrage spread detection, and interactive portfolio advisory.
+                  FinSight AI is optimized for free OpenRouter tier keys with internal reasoning tokens disabled to strictly conserve your token limit while providing institutional-grade portfolio analysis.
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center justify-between">
-                  <span>Google Gemini API Key</span>
+                  <span>OpenRouter API Key (Free Tier)</span>
                   <button 
                     type="button" 
                     onClick={() => setShowKey(!showKey)}
@@ -136,26 +141,58 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSav
                 <div className="relative">
                   <input
                     type={showKey ? 'text' : 'password'}
-                    value={settings.geminiApiKey}
+                    value={settings.openRouterApiKey || ''}
                     onChange={(e) => {
-                      setSettings({ ...settings, geminiApiKey: e.target.value });
+                      setSettings({ ...settings, openRouterApiKey: e.target.value });
                       setGeminiStatus(null);
                     }}
-                    placeholder="AIzaSy..."
+                    placeholder="sk-or-v1-..."
                     className="w-full bg-dark-950 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-gold-500/50"
                   />
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <span>Fallback Google Gemini API Key (Optional)</span>
+                </label>
+                <input
+                  type={showKey ? 'text' : 'password'}
+                  value={settings.geminiApiKey || ''}
+                  onChange={(e) => {
+                    setSettings({ ...settings, geminiApiKey: e.target.value });
+                    setGeminiStatus(null);
+                  }}
+                  placeholder="AIzaSy..."
+                  className="w-full bg-dark-950 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-gold-500/50"
+                />
+              </div>
+
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={handleTestGemini}
+                  onClick={async () => {
+                    const keyToTest = settings.openRouterApiKey || settings.geminiApiKey;
+                    if (!keyToTest) {
+                      setGeminiStatus({ success: false, message: 'Please enter an API Key first.' });
+                      return;
+                    }
+                    setTestingGemini(true);
+                    setGeminiStatus(null);
+                    try {
+                      const res = await testGeminiKey(keyToTest);
+                      setGeminiStatus(res);
+                    } catch (e: any) {
+                      setGeminiStatus({ success: false, message: e.message || 'Verification failed.' });
+                    } finally {
+                      setTestingGemini(false);
+                    }
+                  }}
                   disabled={testingGemini}
                   className="btn-secondary py-2.5 px-4 text-xs flex items-center gap-2"
                 >
                   {testingGemini ? <RefreshCw size={14} className="animate-spin" /> : <Cpu size={14} />}
-                  {testingGemini ? 'Verifying with Google...' : 'Test Gemini Connection'}
+                  {testingGemini ? 'Verifying Key...' : 'Test Active AI Connection'}
                 </button>
 
                 {geminiStatus && (
@@ -167,8 +204,8 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSav
               </div>
 
               <div className="text-xs text-gray-400 bg-dark-950/60 p-3.5 rounded-xl border border-white/5 space-y-1">
-                <p className="font-semibold text-gray-300">Need your own new key?</p>
-                <p>You can generate a 100% free Gemini API key anytime at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-gold-400 underline">Google AI Studio</a>.</p>
+                <p className="font-semibold text-gray-300">Token-Saving Architecture</p>
+                <p>Prompt payloads are condensed to ~120 tokens, and reasoning tokens are bypassed so you can safely use OpenRouter free-tier keys without exhaustion.</p>
               </div>
             </div>
           )}

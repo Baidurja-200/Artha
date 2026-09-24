@@ -13,6 +13,9 @@ export interface Holding {
   exchange?: 'NSE' | 'BSE' | 'BOTH';
   high52w?: number;
   low52w?: number;
+  trend5d?: number[];
+  change5dPercent?: number;
+  trendDirection?: 'up' | 'down' | 'flat';
   lastUpdated?: string;
 }
 
